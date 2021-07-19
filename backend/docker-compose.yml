@@ -16,11 +16,11 @@ services:
     image: openpolitica/open_tracker_backend:${GIT_BRANCH}
     restart: always
     environment:
-      - DBHOST=open_tracker_db
-      - DBNAME=op
-      - DBPORT=5432
-      - USERDB=op
-      - PASSWORDDB=${DB_PASS}
+      - DB_HOSTNAME=open_tracker_db
+      - DB_NAME=op
+      - DB_PORT=5432
+      - DB_USERNAME=op
+      - DB_PASSWORD=${DB_PASS}
       # NGINX-PROXY ENVIRONMENT VARIABLES: UPDATE ME
       - VIRTUAL_HOST=api.${GIT_BRANCH}.congreso.${HOST_DOMAIN}
       - VIRTUAL_PORT=3000
