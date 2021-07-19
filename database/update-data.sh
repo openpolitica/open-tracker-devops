@@ -3,9 +3,9 @@
 INIT_DIR=${PWD}
 
 if [[ $ENV_TYPE == 'staging' ]]; then
-	export $FOLDER_NAME=staging
+	export FOLDER_NAME=staging
 elif [[ $ENV_TYPE == 'production' ]]; then
-	export $FOLDER_NAME=production
+	export FOLDER_NAME=production
 fi
 
 #Set environment variables
