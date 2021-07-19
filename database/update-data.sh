@@ -2,9 +2,9 @@
 #Init directory 
 INIT_DIR=${PWD}
 
-if [[ $ENV_TYPE=='staging' ]]; then
+if [[ $ENV_TYPE == 'staging' ]]; then
 	export $FOLDER_NAME=staging
-elif [[ $ENV_TYPE=='production' ]]; then
+elif [[ $ENV_TYPE == 'production' ]]; then
 	export $FOLDER_NAME=production
 fi
 

@@ -23,12 +23,12 @@ if [[ -z $PROJECT_DIRECTORY ]]; then
 fi
 
 # Verify environment
-if [[ $ENV_TYPE=="production" ]]; then
+if [[ $ENV_TYPE == "production" ]]; then
 	ENV_DIRECTORY=${PROJECT_DIRECTORY}/production
 	GIT_BRANCH=main
 else
 	ENV_DIRECTORY=${PROJECT_DIRECTORY}/staging
-	GIT_BRANCH=staging
+	GIT_BRANCH=dev
 fi
 
 mkdir -p ${ENV_DIRECTORY}
@@ -58,7 +58,7 @@ fi
 cd ${BACKEND_DIRECTORY}
 cp ${INIT_DIR}/Dockerfile ./
 
-docker build -t openpolitica/open-tracker-backend:${GIT_BRANCH} -f Dockerfile . 
+docker build -t openpolitica/open_tracker_backend:${GIT_BRANCH} -f Dockerfile . 
 
 cd ${ENV_DIRECTORY}
 cp ${INIT_DIR}/docker-compose.yml ./
