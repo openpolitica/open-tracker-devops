@@ -8,7 +8,7 @@ if [ -z $PGHOST ]; then
     echo "No deployment folder name provided. Supposed under backend."
     FOLDER_NAME=backend
   fi
-  PGHOST=`sudo docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${FOLDER_NAME}_open_tracker_backend_1`
+  PGHOST=`sudo docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${FOLDER_NAME}_open_tracker_db_1`
 fi
 
 if [ -z $PGPASSWORD ]; then
