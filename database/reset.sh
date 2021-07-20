@@ -35,6 +35,47 @@ EOF
 echo "$command_file" | pgloader /dev/stdin
 
 
+# Store in temporary table VicePresidentes that we know are Congresistas
+echo "----------------------------------------------"
+echo "#### Getting the 'Vicepresidentes' that are 'Congresistas' and storing their ID in temporary table"
+$SQLCMD "
+DROP TABLE IF EXISTS \"temp_vp_congreso\";
+CREATE TABLE temp_vp_congreso AS
+SELECT hoja_vida_id
+FROM candidato
+WHERE cargo_nombre LIKE '%VICEPRESIDENTE%';
+"
+
+# Import Parlamento Andino
+# Requires pgloader
+echo "----------------------------------------------"
+echo "#### Import candidates: Parlamento Andino"
+command_file="$(cat << EOF
+load database
+     from https://github.com/openpolitica/jne-elecciones/raw/main/data/plataformaelectoral/2021-candidatos-parlamento-andino.db
+     into pgsql://${PGUSER}@${PGHOST}:${PGPORT}/${PGDATABASE}
+
+ WITH include no drop, create no tables, create indexes, reset sequences
+
+  SET work_mem to '16MB', maintenance_work_mem to '512 MB'
+
+ CAST type string to text;
+EOF
+)"
+echo "$command_file" | pgloader /dev/stdin
+
+# Store in temporary table VicePresidentes that we know are Parlamento Andino
+echo "----------------------------------------------"
+echo "#### Getting the 'Vicepresidentes' that are 'Parlamento Andino' and storing their ID in temporary table"
+$SQLCMD "
+DROP TABLE IF EXISTS \"temp_vp_pa\";
+CREATE TABLE temp_vp_pa AS
+SELECT hoja_vida_id
+FROM candidato
+WHERE cargo_nombre LIKE '%VICEPRESIDENTE%' AND hoja_vida_id NOT IN
+(SELECT hoja_vida_id FROM \"temp_vp_congreso\");
+"
+
 # Modify datatypes in candidates
 echo "----------------------------------------------"
 echo "#### Modifying the datatypes in table"
@@ -53,6 +94,7 @@ ALTER TABLE "candidato" ALTER COLUMN proceso_electoral_id TYPE smallint;
 ALTER TABLE "candidato" ALTER COLUMN candidato_id TYPE int;
 ALTER TABLE "candidato" ALTER COLUMN posicion TYPE smallint;
 ALTER TABLE "candidato" ALTER COLUMN cargo_id TYPE smallint;
+ALTER TABLE "candidato" ALTER COLUMN cargo_nombre TYPE varchar(64);
 ALTER TABLE "candidato" ALTER COLUMN org_politica_id TYPE smallint;
 ALTER TABLE "candidato" ALTER COLUMN org_politica_nombre TYPE varchar(46);
 ALTER TABLE "candidato" ALTER COLUMN estado_id TYPE smallint;
@@ -73,6 +115,38 @@ ALTER TABLE "sentencia_civil" ALTER COLUMN hoja_vida_id TYPE int;
 ALTER TABLE "sentencia_penal" ALTER COLUMN hoja_vida_id TYPE int;
 '''
 
+# Change applicable Vicepresidentes to VP+Congresistas
+echo "----------------------------------------------"
+echo "#### Creating new 'cargo_nombre' type that mixes 'Vicepresidente + Congresista' where applicable"
+$SQLCMD "
+ALTER TABLE \"temp_vp_congreso\" ALTER COLUMN hoja_vida_id TYPE int;
+UPDATE candidato
+SET cargo_nombre='PRIMER VICEPRESIDENTE Y CONGRESISTA DE LA REPÚBLICA'
+WHERE cargo_nombre LIKE 'PRIMER VICEPRESIDENTE%'
+AND hoja_vida_id in (SELECT * FROM temp_vp_congreso);
+UPDATE candidato
+SET cargo_nombre='SEGUNDO VICEPRESIDENTE Y CONGRESISTA DE LA REPÚBLICA'
+WHERE cargo_nombre LIKE 'SEGUNDO VICEPRESIDENTE%'
+AND hoja_vida_id in (SELECT * FROM temp_vp_congreso);
+DROP TABLE IF EXISTS \"temp_vp_congreso\";
+"
+
+# Change applicable Vicepresidentes to VP+PA
+echo "----------------------------------------------"
+echo "#### Creating new 'cargo_nombre' type that mixes 'Vicepresidente + Parlamento Andino' where applicable"
+$SQLCMD "
+ALTER TABLE \"temp_vp_pa\" ALTER COLUMN hoja_vida_id TYPE int;
+UPDATE candidato
+SET cargo_nombre='PRIMER VICEPRESIDENTE Y REPRESENTANTE ANTE EL PARLAMENTO ANDINO'
+WHERE cargo_nombre LIKE 'PRIMER VICEPRESIDENTE%'
+AND hoja_vida_id in (SELECT * FROM temp_vp_pa);
+UPDATE candidato
+SET cargo_nombre='SEGUNDO VICEPRESIDENTE Y REPRESENTANTE ANTE EL PARLAMENTO ANDINO'
+WHERE cargo_nombre LIKE 'SEGUNDO VICEPRESIDENTE%'
+AND hoja_vida_id in (SELECT * FROM temp_vp_pa);
+DROP TABLE IF EXISTS \"temp_vp_pa\";
+"
+
 # Add temp elected table
 echo "----------------------------------------------"
 echo "#### Add temp elected candidate"
@@ -88,7 +162,7 @@ $SQLCMD "\copy \"temp_electos\" (
   \"hoja_vida_id\",
   \"nombre\",
   \"partido\")
-FROM './congresistas_electos.csv' DELIMITER ',' QUOTE '\"' CSV HEADER;
+FROM './congresistas_pa_electos.csv' DELIMITER ',' QUOTE '\"' CSV HEADER;
 "
 
 #Deleting all not elected
@@ -100,14 +174,22 @@ WHERE "candidato".hoja_vida_id NOT IN (SELECT hoja_vida_id FROM temp_electos);
 DROP TABLE IF EXISTS temp_electos;
 '''
 
+#Create column with cargo_electo
+echo "----------------------------------------------"
+echo "#### Crear columna con cargos elegidos"
+$SQLCMD "
+ALTER TABLE candidato ADD COLUMN cargo_electo VARCHAR(64);
+UPDATE candidato
+SET cargo_electo='CONGRESISTA DE LA REPÚBLICA'
+WHERE cargo_nombre LIKE '%CONGRESISTA%';
+UPDATE candidato
+SET cargo_electo='REPRESENTANTE ANTE EL PARLAMENTO ANDINO'
+WHERE cargo_nombre LIKE '%PARLAMENTO%';
+"
+
 # Expand cargo_nombre field and remove new duplicates
 echo "----------------------------------------------"
-echo "#### Altering some field types for supporting longer text and removing duplicate entries individually"
-$SQLCMD '''
-ALTER TABLE "candidato"
-  ALTER COLUMN cargo_nombre TYPE varchar(64);
-'''
-
+echo "#### Removing duplicate entries individually"
 $SQLCMD "
 DELETE FROM \"candidato\"
 WHERE expediente_estado LIKE '%IMPROCEDENTE%'
@@ -568,7 +650,7 @@ $SQLCMD "\copy \"redes_sociales\" (
 FROM './redes_sociales.csv' DELIMITER ',' QUOTE '\"' CSV HEADER;
 "
 
-# Militancy: Import Presidentes first
+# Militancy: Congreso 
 echo "----------------------------------------------"
 echo "#### Militancy: Importing candidates: Congresistas"
 command_file="$(cat << EOF
@@ -577,6 +659,23 @@ load database
      into pgsql://${PGUSER}@${PGHOST}:${PGPORT}/${PGDATABASE}
 
  WITH include drop, create tables, create indexes, reset sequences
+
+  SET work_mem to '16MB', maintenance_work_mem to '512 MB'
+
+ CAST type string to text;
+EOF
+)"
+echo "$command_file" | pgloader /dev/stdin
+
+# Militancy: Parlamento Andino
+echo "----------------------------------------------"
+echo "#### Militancy: Importing candidates: Parlamento Andino"
+command_file="$(cat << EOF
+load database
+     from https://github.com/openpolitica/jne-elecciones/raw/main/data/infogob/2021-militancia-candidatos-parlamento-andino.db
+     into pgsql://${PGUSER}@${PGHOST}:${PGPORT}/${PGDATABASE}
+
+ WITH include no drop, create no tables, create indexes, reset sequences
 
   SET work_mem to '16MB', maintenance_work_mem to '512 MB'
 
