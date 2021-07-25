@@ -32,8 +32,9 @@ load database
  CAST type string to text;
 EOF
 )"
-echo "$command_file" | pgloader /dev/stdin
-
+echo "$command_file" > script 
+docker run --rm --name pgloader --net nginx-proxy --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader script
+rm script
 
 # Store in temporary table VicePresidentes that we know are Congresistas
 echo "----------------------------------------------"
@@ -62,7 +63,9 @@ load database
  CAST type string to text;
 EOF
 )"
-echo "$command_file" | pgloader /dev/stdin
+echo "$command_file" > script 
+docker run --rm --name pgloader --net nginx-proxy --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader script
+rm script
 
 # Store in temporary table VicePresidentes that we know are Parlamento Andino
 echo "----------------------------------------------"
@@ -665,7 +668,9 @@ load database
  CAST type string to text;
 EOF
 )"
-echo "$command_file" | pgloader /dev/stdin
+echo "$command_file" > script 
+docker run --rm --name pgloader --net nginx-proxy --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader script
+rm script
 
 # Militancy: Parlamento Andino
 echo "----------------------------------------------"
@@ -682,7 +687,9 @@ load database
  CAST type string to text;
 EOF
 )"
-echo "$command_file" | pgloader /dev/stdin
+echo "$command_file" > script 
+docker run --rm --name pgloader --net nginx-proxy --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader script
+rm script
 
 # Modify datatypes in afiliacion
 echo "----------------------------------------------"
