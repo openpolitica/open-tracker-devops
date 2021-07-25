@@ -715,12 +715,18 @@ DELETE FROM "afiliacion"
 WHERE "afiliacion".dni NOT IN (SELECT id_dni FROM candidato);
 '''
 
+# Update column name from cargo_nombre to cargo_postulacion
+echo "----------------------------------------------"
+echo "#### Update from cargo_nombre to cargo_postulacion"
+$SQLCMD '''
+ALTER TABLE candidato RENAME COLUMN cargo_nombre TO cargo_postulacion;
+'''
 
 # Create definite indexes and relations!
 echo "----------------------------------------------"
 echo "#### Creating indexes and relations betweeen tables"
 $SQLCMD '''
-CREATE INDEX on candidato(hoja_vida_id, postula_distrito, cargo_nombre, org_politica_nombre, org_politica_id, id_sexo, expediente_estado, id_dni);
+CREATE INDEX on candidato(hoja_vida_id, postula_distrito, cargo_postulacion, org_politica_nombre, org_politica_id, id_sexo, expediente_estado, id_dni, cargo_electo);
 ALTER TABLE candidato ADD PRIMARY KEY(id_dni);
 ALTER TABLE candidato ADD CONSTRAINT unique_candidate UNIQUE ("hoja_vida_id");
 ALTER TABLE "ingreso"
