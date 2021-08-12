@@ -1,4 +1,4 @@
-hoja_vida_id,NOMBRES,PARTIDO
+cv_id,full_name,political_party
 135081,Segundo Toribio Montalvo Cubas,Perú Libre
 135001,Kelly Roxana Portalatino Avalos,Perú Libre
 137462,Elias Marcial Varas Melendez,Perú Libre
@@ -116,7 +116,7 @@ hoja_vida_id,NOMBRES,PARTIDO
 133971,Cheryl Trigozo Reátegui,Alianza para el Progreso
 135030,Diana Carolina Gonzales Delgado,Avanza País
 134654,Patricia Rosa Chirinos Venegas,Avanza País
-134557,Juan Bartolome Burgos Oliveros,Avanza País
+137180,Juan Bartolome Burgos Oliveros,Avanza País
 135035,Adriana Josefina Tudela Gutierrez,Avanza País
 134984,Jose Daniel Williams Zapata,Avanza País
 134835,Alejandro Enrique Cavero Alva,Avanza País
