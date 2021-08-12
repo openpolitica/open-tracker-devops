@@ -787,3 +787,9 @@ CREATE INDEX ON data_ec(hoja_vida_id, designado, inmuebles_total, muebles_total,
 CREATE INDEX ON afiliacion(vigente, dni, org_politica, afiliacion_inicio, afiliacion_cancelacion)
 '''
 
+# Update table name from candidate to congresista
+echo "----------------------------------------------"
+echo "#### Update from candidate to congresista"
+$SQLCMD '''
+ALTER TABLE candidato RENAME TO congresista;
+'''
