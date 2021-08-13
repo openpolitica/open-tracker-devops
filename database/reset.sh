@@ -529,24 +529,34 @@ echo "#### Creating new table 'locations' for seats & geographical coordinates"
 $SQLCMD '''
 DROP TABLE IF EXISTS "locations";
 CREATE TABLE "locations" (
-  "id" smallint DEFAULT NULL,
+  "ubigeo" int PRIMARY KEY,
   "location" varchar(48) DEFAULT NULL,
   "lat" varchar(32) DEFAULT NULL,
   "lng" varchar(32) DEFAULT NULL,
   "seats" smallint DEFAULT NULL,
-  "apicounts" int DEFAULT 0,
+  "count_seats" smallint DEFAULT NULL,
   "si_vacancia" int DEFAULT 0,
   "no_vacancia" int DEFAULT 0
 );
 '''
 $SQLCMD "\copy \"locations\" (
-  \"id\",
+  \"ubigeo\",
   \"location\",
   \"lat\",
   \"lng\",
   \"seats\")
 FROM './locations.csv' DELIMITER ',' QUOTE '\"' CSV HEADER;
 "
+
+echo "----------------------------------------------"
+echo "#### Count congress for electoral_district"
+$SQLCMD '''
+UPDATE locations SET count_seats = grouped_by_ubigeo.count_candidato 
+FROM (SELECT postula_ubigeo, count(hoja_vida_id) as count_candidato FROM candidato GROUP BY
+postula_ubigeo) as grouped_by_ubigeo
+WHERE locations.ubigeo = grouped_by_ubigeo.postula_ubigeo;
+'''
+
 
 # New dirty lists table and populate
 echo "----------------------------------------------"
@@ -729,6 +739,10 @@ $SQLCMD '''
 CREATE INDEX on candidato(hoja_vida_id, postula_distrito, cargo_postulacion, org_politica_nombre, org_politica_id, id_sexo, expediente_estado, id_dni, cargo_electo);
 ALTER TABLE candidato ADD PRIMARY KEY(id_dni);
 ALTER TABLE candidato ADD CONSTRAINT unique_candidate UNIQUE ("hoja_vida_id");
+ALTER TABLE "candidato"
+  ADD CONSTRAINT "candidato_locations_fk1" FOREIGN KEY ("postula_ubigeo") 
+  REFERENCES "locations" ("ubigeo") 
+  ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "ingreso"
   ADD CONSTRAINT "ingreso_fk1" FOREIGN KEY ("hoja_vida_id") 
   REFERENCES "candidato" ("hoja_vida_id") 
