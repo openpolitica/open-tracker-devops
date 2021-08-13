@@ -645,24 +645,6 @@ SET id_nombres = 'GAHELA TSENEG', id_sexo = 'F'
 WHERE hoja_vida_id = 136670
 "
 
-# Add social network table
-echo "----------------------------------------------"
-echo "#### Add information for social_network"
-$SQLCMD '''
-DROP TABLE IF EXISTS "redes_sociales";
-CREATE TABLE "redes_sociales" (
-  "hoja_vida_id" int DEFAULT NULL,
-  "facebook" text DEFAULT NULL,
-  "twitter" text DEFAULT NULL
-);
-'''
-$SQLCMD "\copy \"redes_sociales\" (
-  \"hoja_vida_id\",
-  \"facebook\",
-  \"twitter\")
-FROM './redes_sociales.csv' DELIMITER ',' QUOTE '\"' CSV HEADER;
-"
-
 # Militancy: Congreso 
 echo "----------------------------------------------"
 echo "#### Militancy: Importing candidates: Congresistas"
