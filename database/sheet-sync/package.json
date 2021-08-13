@@ -1,0 +1,22 @@
+{
+  "name": "sheet-sync",
+  "version": "1.0.0",
+  "description": "Sync DB with google sheet info",
+  "main": "index.js",
+  "bin": "./index.js" ,
+  "scripts": {
+    "reset": "node index.js"
+  },
+  "keywords": [
+    "utility"
+  ],
+  "author": "Open politica",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^8.1.0",
+    "dotenv": "^10.0.0",
+    "googleapis": "^84.0.0",
+    "pg": "^8.7.1",
+    "winston": "^3.3.3"
+  }
+}
