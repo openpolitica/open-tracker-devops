@@ -333,8 +333,8 @@ DROP TABLE IF EXISTS \"temp_experiencia\";
 
 ## Alias de partido
 $SQLCMD '''
-DROP TABLE IF EXISTS "partidos_alias";
-CREATE TABLE "partidos_alias" (
+DROP TABLE IF EXISTS "partidos_politicos";
+CREATE TABLE "partidos_politicos" (
   "id" smallint DEFAULT NULL,
   "orden_cedula" smallint DEFAULT NULL,
   "nombre" varchar(56) DEFAULT NULL,
@@ -343,13 +343,13 @@ CREATE TABLE "partidos_alias" (
   PRIMARY KEY (id)
 );
 '''
-$SQLCMD "\copy \"partidos_alias\" (
+$SQLCMD "\copy \"partidos_politicos\" (
   \"id\",
   \"orden_cedula\",
   \"nombre\",
   \"alias\",
   \"plan_de_gobierno_url\")
-FROM './partidos_alias.csv' DELIMITER ',' QUOTE '\"' CSV HEADER;
+FROM './partidos_politicos.csv' DELIMITER ',' QUOTE '\"' CSV HEADER;
 "
 
 ## Educación mayor nivel
@@ -743,6 +743,10 @@ ALTER TABLE "candidato"
   ADD CONSTRAINT "candidato_locations_fk1" FOREIGN KEY ("postula_ubigeo") 
   REFERENCES "locations" ("ubigeo") 
   ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "candidato"
+  ADD CONSTRAINT "candidato_partido_politico_fk1" FOREIGN KEY ("org_politica_id") 
+  REFERENCES "partidos_politicos" ("id") 
+  ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "ingreso"
   ADD CONSTRAINT "ingreso_fk1" FOREIGN KEY ("hoja_vida_id") 
   REFERENCES "candidato" ("hoja_vida_id") 
@@ -796,7 +800,7 @@ ALTER TABLE "afiliacion"
 CREATE INDEX ON ingreso(total, hoja_vida_id);
 CREATE INDEX ON extra_data(vacancia, experiencia_publica, sentencias_ec_civil_cnt, sentencias_ec_penal_cnt, educacion_mayor_nivel);
 CREATE INDEX ON locations(location, seats, lat, lng);
-CREATE INDEX ON partidos_alias(alias, id, orden_cedula, plan_de_gobierno_url);
+CREATE INDEX ON partidos_politicos(alias, id, orden_cedula, plan_de_gobierno_url);
 CREATE INDEX ON data_ec(hoja_vida_id, designado, inmuebles_total, muebles_total, deuda_sunat, aportes_electorales, procesos_electorales_participados, procesos_electorales_ganados, papeletas_sat, sancion_servir_registro);
 CREATE INDEX ON afiliacion(vigente, dni, org_politica, afiliacion_inicio, afiliacion_cancelacion)
 '''
