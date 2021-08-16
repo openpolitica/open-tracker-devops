@@ -503,14 +503,14 @@ SET sancion_servir_institucion = 'No registra'
 WHERE sancion_servir_institucion IS NULL OR CHAR_LENGTH(sancion_servir_institucion) = 1;
 "
 
-# New locations table and populate
+# New location table and populate
 echo "----------------------------------------------"
-echo "#### Creating new table 'locations' for seats & geographical coordinates"
+echo "#### Creating new table 'location' for seats & geographical coordinates"
 $SQLCMD '''
-DROP TABLE IF EXISTS "locations";
-CREATE TABLE "locations" (
+DROP TABLE IF EXISTS "location";
+CREATE TABLE "location" (
   "ubigeo" int PRIMARY KEY,
-  "location" varchar(48) DEFAULT NULL,
+  "location_name" varchar(48) DEFAULT NULL,
   "lat" varchar(32) DEFAULT NULL,
   "lng" varchar(32) DEFAULT NULL,
   "seats" smallint DEFAULT NULL,
@@ -519,22 +519,22 @@ CREATE TABLE "locations" (
   "no_vacancia" int DEFAULT 0
 );
 '''
-$SQLCMD "\copy \"locations\" (
+$SQLCMD "\copy \"location\" (
   \"ubigeo\",
-  \"location\",
+  \"location_name\",
   \"lat\",
   \"lng\",
   \"seats\")
-FROM './locations.csv' DELIMITER ',' QUOTE '\"' CSV HEADER;
+FROM './location.csv' DELIMITER ',' QUOTE '\"' CSV HEADER;
 "
 
 echo "----------------------------------------------"
 echo "#### Count congress for electoral_district"
 $SQLCMD '''
-UPDATE locations SET count_seats = grouped_by_ubigeo.count_candidato 
+UPDATE location SET count_seats = grouped_by_ubigeo.count_candidato 
 FROM (SELECT postula_ubigeo, count(hoja_vida_id) as count_candidato FROM candidato GROUP BY
 postula_ubigeo) as grouped_by_ubigeo
-WHERE locations.ubigeo = grouped_by_ubigeo.postula_ubigeo;
+WHERE location.ubigeo = grouped_by_ubigeo.postula_ubigeo;
 '''
 
 
@@ -702,8 +702,8 @@ CREATE INDEX on candidato(hoja_vida_id, postula_distrito, cargo_postulacion, org
 ALTER TABLE candidato ADD PRIMARY KEY(id_dni);
 ALTER TABLE candidato ADD CONSTRAINT unique_candidate UNIQUE ("hoja_vida_id");
 ALTER TABLE "candidato"
-  ADD CONSTRAINT "candidato_locations_fk1" FOREIGN KEY ("postula_ubigeo") 
-  REFERENCES "locations" ("ubigeo") 
+  ADD CONSTRAINT "candidato_location_fk1" FOREIGN KEY ("postula_ubigeo") 
+  REFERENCES "location" ("ubigeo") 
   ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "ingreso"
   ADD CONSTRAINT "ingreso_fk1" FOREIGN KEY ("hoja_vida_id") 
@@ -757,7 +757,7 @@ ALTER TABLE "afiliacion"
   ON DELETE CASCADE ON UPDATE CASCADE;
 CREATE INDEX ON ingreso(total, hoja_vida_id);
 CREATE INDEX ON extra_data(vacancia, experiencia_publica, sentencias_ec_civil_cnt, sentencias_ec_penal_cnt, educacion_mayor_nivel);
-CREATE INDEX ON locations(location, seats, lat, lng);
+CREATE INDEX ON location(ubigeo, location_name, seats, lat, lng);
 CREATE INDEX ON data_ec(hoja_vida_id, designado, inmuebles_total, muebles_total, deuda_sunat, aportes_electorales, procesos_electorales_participados, procesos_electorales_ganados, papeletas_sat, sancion_servir_registro);
 CREATE INDEX ON afiliacion(vigente, dni, org_politica, afiliacion_inicio, afiliacion_cancelacion)
 '''
