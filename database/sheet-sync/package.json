@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Sync DB with google sheet info",
   "main": "index.js",
-  "bin": "./index.js" ,
+  "bin": "./index.js",
   "scripts": {
     "reset": "node index.js"
   },
