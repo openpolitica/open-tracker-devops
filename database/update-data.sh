@@ -13,3 +13,6 @@ source ${INIT_DIR}/load-credentials.sh
 
 #Run the script to load the database
 ./reset.sh
+
+#Update column names
+./rename-columns.sh
