@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 #Init directory 
 INIT_DIR=${PWD}
 

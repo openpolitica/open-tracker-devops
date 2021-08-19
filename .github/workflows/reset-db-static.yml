@@ -1,0 +1,86 @@
+name: 'Reset database static'
+
+on:
+  workflow_dispatch:
+    branches:
+    - master
+    inputs:
+      env_type:
+        description: 'Environment type'
+        required: true
+        default: 'staging'
+
+jobs:
+  getaddress:
+    name: 'Get Database address'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: .
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    
+    - name: Install SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_KEY }}
+        name: id_rsa # optional
+        known_hosts: 'Generated-in-a-step-forward'
+        if_key_exists: fail 
+
+    - name: Adding Known Hosts
+      run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Get db ip from server
+      run: ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "FOLDER_NAME=${{ github.event.inputs.env_type }} /bin/bash -s " < database/get-db-ip.sh > ip-address.txt
+
+    - name: Upload ip address
+      uses: actions/upload-artifact@v2
+      with:
+        name: db-ip
+        path: ip-address.txt
+
+  updatedb:
+    name: 'Update Database with ssh tunnel'
+    needs: getaddress
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: .
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    
+    - name: Install SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_KEY }}
+        name: id_rsa # optional
+        known_hosts: 'Generated-in-a-step-forward'
+        if_key_exists: fail 
+
+    - name: Adding Known Hosts
+      run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Download ip address
+      uses: actions/download-artifact@v2
+      with:
+        name: db-ip
+
+    - name: Create ssh tunnel
+      run: |
+        LOCAL_ADDRESS=$(database/get-local-ip.sh) 
+        DB_ADDRESS=$(<ip-address.txt)
+        ssh -L $LOCAL_ADDRESS:5432:$DB_ADDRESS:5432 -N -f ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}
+
+    - name: Reset database
+      run: |
+        cd database
+        PGHOST=$(./get-local-ip.sh) ENV_TYPE=${{ github.event.inputs.env_type }} ./update-data.sh
