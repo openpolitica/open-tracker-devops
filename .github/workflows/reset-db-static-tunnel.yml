@@ -1,4 +1,4 @@
-name: 'Reset database static'
+name: 'Reset database static data (ssh tunnel)'
 
 on:
   workflow_dispatch:
