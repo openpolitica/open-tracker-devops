@@ -8,8 +8,8 @@ elif [[ $ENV_TYPE == 'production' ]]; then
 	export FOLDER_NAME=production
 fi
 
-if [[ ! -z $GOOGLE_AUTH_INFO ]]; then
-	export GOOGLE_AUTH_INFO=$GOOGLE_AUTH_INFO
+if [[ ! -z $GOOGLE_AUTH_ENCODED ]]; then
+	export GOOGLE_AUTH_ENCODED=$GOOGLE_AUTH_ENCODED
 fi
 
 #First reset static data
