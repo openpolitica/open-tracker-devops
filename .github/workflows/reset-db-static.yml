@@ -83,4 +83,4 @@ jobs:
     - name: Reset database
       run: |
         cd database
-        PGHOST=$(./get-local-ip.sh) ENV_TYPE=${{ github.event.inputs.env_type }} ./update-data.sh
+        PGHOST=$(./get-local-ip.sh) OUTSIDE_DOCKER_NETWORK=1 ENV_TYPE=${{ github.event.inputs.env_type }} ./update-data.sh

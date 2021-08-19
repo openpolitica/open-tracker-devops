@@ -6,6 +6,7 @@
 # export PGPORT=database_port
 # export PGUSER=database_user
 # export PGPASSWORD=database_password
+# export OUTSIDE_DOCKER_NETWORK
 
 SQLCMD="psql -U ${PGUSER} -w  -h ${PGHOST} -c "
 
@@ -15,6 +16,14 @@ DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 GRANT ALL ON SCHEMA public TO public;
 "
+
+function update_with_pgloader() {
+  if [[ -z $OUTSIDE_DOCKER_NETWORK ]]; then
+    docker run --rm --name pgloader --net nginx-proxy --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader $1
+  else 
+    docker run --rm --name pgloader --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader $1
+  fi
+}
 
 # Import Congreso
 # Requires pgloader
@@ -33,7 +42,7 @@ load database
 EOF
 )"
 echo "$command_file" > script 
-docker run --rm --name pgloader --net nginx-proxy --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader script
+update_with_pgloader script
 rm script
 
 # Store in temporary table VicePresidentes that we know are Congresistas
@@ -64,7 +73,7 @@ load database
 EOF
 )"
 echo "$command_file" > script 
-docker run --rm --name pgloader --net nginx-proxy --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader script
+update_with_pgloader script
 rm script
 
 # Store in temporary table VicePresidentes that we know are Parlamento Andino
@@ -641,7 +650,7 @@ load database
 EOF
 )"
 echo "$command_file" > script 
-docker run --rm --name pgloader --net nginx-proxy --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader script
+update_with_pgloader script
 rm script
 
 # Militancy: Parlamento Andino
@@ -660,7 +669,7 @@ load database
 EOF
 )"
 echo "$command_file" > script 
-docker run --rm --name pgloader --net nginx-proxy --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader script
+update_with_pgloader script
 rm script
 
 # Modify datatypes in afiliacion
