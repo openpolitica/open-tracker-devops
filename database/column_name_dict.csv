@@ -44,7 +44,7 @@ domicilio_ubigeo,residence_ubigeo
 educacion_mayor_nivel,education_higher_level
 educacion_postgrado,education_postgraduate
 educacion_primaria,education_primary
-educacion_secundaria,eduaction_secondary
+educacion_secundaria,education_secondary
 educacion_superior_nouniversitaria,education_higher_nonuniversity
 educacion_superior_tecnica,education_higher_technical
 educacion_superior_universitaria,education_higher_university
@@ -62,7 +62,7 @@ expediente_provincia,file_province
 expediente_region,file_region
 expediente_ubigeo,file_ubigeo
 experiencia_privada,experience_private
-experiencia_publica,experiencie_public
+experiencia_publica,experience_public
 facebook,facebook
 fallo,verdict
 fallo_obliga,verdict_obliges
