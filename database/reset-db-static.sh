@@ -16,3 +16,6 @@ source ${INIT_DIR}/load-credentials.sh
 
 #Update column names
 ./rename-columns.sh
+
+#Add slugs
+./add-slugs.sh
