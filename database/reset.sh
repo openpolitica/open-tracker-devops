@@ -523,9 +523,7 @@ CREATE TABLE "location" (
   "lat" varchar(32) DEFAULT NULL,
   "lng" varchar(32) DEFAULT NULL,
   "seats" smallint DEFAULT NULL,
-  "count_seats" smallint DEFAULT NULL,
-  "si_vacancia" int DEFAULT 0,
-  "no_vacancia" int DEFAULT 0
+  "count_seats" smallint DEFAULT NULL
 );
 '''
 $SQLCMD "\copy \"location\" (
