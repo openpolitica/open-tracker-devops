@@ -55,3 +55,13 @@ congressperson.id_first_surname, ' ', id_second_surname));
 CREATE INDEX IF NOT EXISTS congressperson_slug_idx on congressperson(cv_id,
 congressperson_slug);
 "
+
+echo "----------------------------------------------"
+echo "#### Add slug to location table "
+$SQLCMD "
+ALTER TABLE location ADD COLUMN IF NOT EXISTS location_slug text;
+UPDATE location SET location_slug =
+slugify(location.location_name);
+CREATE INDEX IF NOT EXISTS location_slug_idx on location(ubigeo,
+location_slug);
+"
