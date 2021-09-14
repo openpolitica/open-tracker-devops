@@ -19,3 +19,6 @@ source ${INIT_DIR}/load-credentials.sh
 
 #Add slugs
 ./add-slugs.sh
+
+#Add uuids for tables
+./add-uuids.sh
