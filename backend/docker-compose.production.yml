@@ -1,0 +1,39 @@
+version: '3.6'
+
+services:
+  open_tracker_db:
+    image: postgres
+    restart: always    
+    volumes:
+      - ./database:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=op
+      - POSTGRES_USER=op
+      - POSTGRES_PASSWORD=${DB_PASS}
+    expose:
+      - 5432
+  open_tracker_backend:
+    image: openpolitica/open_tracker_backend:${GIT_BRANCH}
+    restart: always
+    environment:
+      - DB_HOSTNAME=open_tracker_db
+      - DB_NAME=op
+      - DB_PORT=5432
+      - DB_USERNAME=op
+      - DB_PASSWORD=${DB_PASS}
+      - PORT=8000
+      # NGINX-PROXY ENVIRONMENT VARIABLES: UPDATE ME
+      - VIRTUAL_HOST=api.${GIT_BRANCH}.congreso.${HOST_DOMAIN},api.congreso.${HOST_DOMAIN}
+      - VIRTUAL_PORT=8000
+      - LETSENCRYPT_HOST=api.${GIT_BRANCH}.congreso.${HOST_DOMAIN},api.congreso.${HOST_DOMAIN}
+      - LETSENCRYPT_EMAIL=${EMAIL_DOMAIN}
+      # END NGINX-PROXY ENVIRONMENT VARIABLES
+    expose:
+       - 8000
+    depends_on:
+      - open_tracker_db
+
+networks:
+  default:
+    external:
+      name: nginx-proxy

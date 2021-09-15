@@ -61,7 +61,12 @@ cp ${INIT_DIR}/Dockerfile ./
 docker build -t openpolitica/open_tracker_backend:${GIT_BRANCH} -f Dockerfile . 
 
 cd ${ENV_DIRECTORY}
-cp ${INIT_DIR}/docker-compose.yml ./
+
+if [[ $ENV_TYPE == "production" ]]; then
+	cp ${INIT_DIR}/docker-compose.production.yml ./docker-compose.yml
+else
+	cp ${INIT_DIR}/docker-compose.yml ./
+fi
 
 #Check if .env file exists and delete previous generated 
 if [[ -f ".env" ]]; then
