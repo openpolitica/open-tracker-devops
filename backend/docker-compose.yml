@@ -12,11 +12,15 @@ services:
       - POSTGRES_PASSWORD=${DB_PASS}
     expose:
       - 5432
+    networks:
+      local:
+        aliases:
+          - ${GIT_BRANCH}_open_tracker_db
   open_tracker_backend:
     image: openpolitica/open_tracker_backend:${GIT_BRANCH}
     restart: always
     environment:
-      - DB_HOSTNAME=open_tracker_db
+      - DB_HOSTNAME=${GIT_BRANCH}_open_tracker_db
       - DB_NAME=op
       - DB_PORT=5432
       - DB_USERNAME=op
@@ -32,8 +36,12 @@ services:
        - 8000
     depends_on:
       - open_tracker_db
+    networks:
+      - local
+      - default
 
 networks:
+  local:
   default:
     external:
       name: nginx-proxy
