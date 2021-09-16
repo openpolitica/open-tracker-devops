@@ -19,7 +19,11 @@ GRANT ALL ON SCHEMA public TO public;
 
 function update_with_pgloader() {
   if [[ -z $OUTSIDE_DOCKER_NETWORK ]]; then
-    docker run --rm --name pgloader --net nginx-proxy --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader $1
+
+    if [[ -z $DOCKER_NETWORK ]]; then
+      DOCKER_NETWORK=nginx-proxy
+    fi
+    docker run --rm --name pgloader --net $DOCKER_NETWORK --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader $1
   else 
     docker run --rm --name pgloader --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader $1
   fi
