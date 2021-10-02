@@ -19,6 +19,7 @@ candidatos_hombres,candidate_men
 candidatos_mujeres,candidate_women
 caracteristica,characteristics
 cargo,position
+cargos,positions
 cargo_electo,position_elected
 cargo_id,position_id
 cargo_postulacion,position_postulation
