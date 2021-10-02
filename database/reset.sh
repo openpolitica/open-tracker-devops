@@ -38,7 +38,7 @@ load database
      from https://github.com/openpolitica/jne-elecciones/raw/main/data/plataformaelectoral/2021-candidatos-congresales.db
      into pgsql://${PGUSER}@${PGHOST}:${PGPORT}/${PGDATABASE}
 
- WITH include drop, create tables, create indexes, reset sequences
+ WITH include drop, create tables, create no indexes, reset sequences
 
   SET work_mem to '16MB', maintenance_work_mem to '512 MB'
 
@@ -69,7 +69,7 @@ load database
      from https://github.com/openpolitica/jne-elecciones/raw/main/data/plataformaelectoral/2021-candidatos-parlamento-andino.db
      into pgsql://${PGUSER}@${PGHOST}:${PGPORT}/${PGDATABASE}
 
- WITH include no drop, create no tables, create indexes, reset sequences
+ WITH include no drop, create no tables, create no indexes, reset sequences
 
   SET work_mem to '16MB', maintenance_work_mem to '512 MB'
 
@@ -644,9 +644,9 @@ load database
      from https://github.com/openpolitica/jne-elecciones/raw/main/data/infogob/2021-militancia-candidatos-congresales.db
      into pgsql://${PGUSER}@${PGHOST}:${PGPORT}/${PGDATABASE}
 
- WITH include drop, create tables, create indexes, reset sequences
+ WITH include drop, create tables, create no indexes, reset sequences
 
-  SET work_mem to '16MB', maintenance_work_mem to '512 MB'
+  SET work_mem to '128 MB', maintenance_work_mem to '512 MB'
 
  CAST type string to text;
 EOF
@@ -663,9 +663,9 @@ load database
      from https://github.com/openpolitica/jne-elecciones/raw/main/data/infogob/2021-militancia-candidatos-parlamento-andino.db
      into pgsql://${PGUSER}@${PGHOST}:${PGPORT}/${PGDATABASE}
 
- WITH include no drop, create no tables, create indexes, reset sequences
+ WITH include no drop, create no tables, create no indexes, reset sequences
 
-  SET work_mem to '16MB', maintenance_work_mem to '512 MB'
+  SET work_mem to '128 MB', maintenance_work_mem to '512 MB'
 
  CAST type string to text;
 EOF
