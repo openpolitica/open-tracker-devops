@@ -6,6 +6,8 @@ if [[ $ENV_TYPE == 'staging' ]]; then
 	export FOLDER_NAME=staging
 elif [[ $ENV_TYPE == 'production' ]]; then
 	export FOLDER_NAME=production
+elif [[ $ENV_TYPE == 'local' ]]; then
+	export FOLDER_NAME=backend
 fi
 
 #Set environment variables

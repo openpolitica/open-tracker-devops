@@ -40,6 +40,25 @@ git clone https://github.com/openpolitica/devops.git
 cd devops
 ```
 
+## Uso
+
+### Desplegar entorno de desarrollo local
+
+
+Se tiene unos scripts especiales para el desarrollo local, el cual solamente
+despliega la base de datos, puesto que se entiende que en el desarrollo local,
+se realiza el despliegue del backend desde el repositorio local.
+```
+cd backend
+docker-compose -f docker-compose.local.yml up -d
+```
+
+```
+cd ../database
+ENV_TYPE=local ./deploy-db-all.sh
+```
+
+
 ## Licencia
 
 Copyright 2021 OpenPolitica

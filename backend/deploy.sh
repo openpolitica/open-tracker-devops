@@ -15,7 +15,7 @@ if [[ -z $EMAIL_DOMAIN ]]; then
 fi
 
 if [[ -z $DB_PASS ]]; then
-	DB_PASS=mywppass
+	DB_PASS=op123%
 fi
 
 if [[ -z $PROJECT_DIRECTORY ]]; then
