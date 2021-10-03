@@ -696,6 +696,8 @@ DROP TABLE IF EXISTS "junk";
 DROP TABLE IF EXISTS "temp_afiliacion";
 DELETE FROM "afiliacion"
 WHERE "afiliacion".dni NOT IN (SELECT id_dni FROM candidato);
+DELETE FROM "proceso_electoral"
+WHERE "proceso_electoral".dni NOT IN (SELECT id_dni FROM candidato);
 '''
 
 # Update column name from cargo_nombre to cargo_postulacion
@@ -766,11 +768,16 @@ ALTER TABLE "afiliacion"
   ADD CONSTRAINT "afiliacion_fk1" FOREIGN KEY ("dni")
   REFERENCES "candidato" ("id_dni")
   ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "proceso_electoral"
+  ADD CONSTRAINT "proceso_electoral_fk1" FOREIGN KEY ("dni")
+  REFERENCES "candidato" ("id_dni")
+  ON DELETE CASCADE ON UPDATE CASCADE;
 CREATE INDEX ON ingreso(total, hoja_vida_id);
 CREATE INDEX ON extra_data(vacancia, experiencia_publica, sentencias_ec_civil_cnt, sentencias_ec_penal_cnt, educacion_mayor_nivel);
 CREATE INDEX ON location(ubigeo, location_name, seats, lat, lng);
 CREATE INDEX ON data_ec(hoja_vida_id, designado, inmuebles_total, muebles_total, deuda_sunat, aportes_electorales, procesos_electorales_participados, procesos_electorales_ganados, papeletas_sat, sancion_servir_registro);
-CREATE INDEX ON afiliacion(vigente, dni, org_politica, afiliacion_inicio, afiliacion_cancelacion)
+CREATE INDEX ON afiliacion(vigente, dni, org_politica, afiliacion_inicio, afiliacion_cancelacion);
+CREATE INDEX ON proceso_electoral(dni, cargo, proceso_electoral);
 '''
 
 # Update table name from candidate to congresista
