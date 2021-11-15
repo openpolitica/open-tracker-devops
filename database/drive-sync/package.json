@@ -1,0 +1,21 @@
+{
+  "name": "drive-sync",
+  "version": "1.0.0",
+  "description": "Sync DB with backup in Google Drive",
+  "main": "index.js",
+  "scripts": {
+    "update": "node index.js --update",
+    "download": "node index.js --download"
+  },
+  "keywords": [
+    "utility"
+  ],
+  "author": "Open Politica",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^8.3.0",
+    "dotenv": "^10.0.0",
+    "googleapis": "^91.0.0",
+    "winston": "^3.3.3"
+  }
+}
