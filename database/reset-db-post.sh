@@ -15,3 +15,6 @@ source ${INIT_DIR}/load-credentials.sh
 
 #Init counters for visited
 ./create-counters.sh
+
+#Import data from projects
+./projects/reset.sh
