@@ -23,9 +23,10 @@ function update_with_pgloader() {
     if [[ -z $DOCKER_NETWORK ]]; then
       DOCKER_NETWORK=nginx-proxy
     fi
-    docker run --rm --name pgloader --net $DOCKER_NETWORK --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader $1
+    docker run --rm --name pgloader --net $DOCKER_NETWORK --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:ccl.latest pgloader $1
   else 
-    docker run --rm --name pgloader --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader $1
+    echo "Deploy outside docker network"
+    docker run --rm --name pgloader --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:ccl.latest pgloader $1
   fi
 }
 
