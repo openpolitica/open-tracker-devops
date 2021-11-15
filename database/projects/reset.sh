@@ -1,5 +1,4 @@
 #!/bin/bash
-
 ####### REQUIRES TO SET ENVIRONMENT VALUES #########
 # export PGDATABASE=database_name
 # export PGHOST=localhost_or_remote_host
@@ -44,9 +43,10 @@ function update_with_pgloader() {
     if [[ -z $DOCKER_NETWORK ]]; then
       DOCKER_NETWORK=nginx-proxy
     fi
-    docker run --rm --name pgloader --net $DOCKER_NETWORK --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader $1
+    docker run --rm --name pgloader --net $DOCKER_NETWORK --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:ccl.latest pgloader $1
   else 
-    docker run --rm --name pgloader --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:latest pgloader $1
+    echo "Deploy outside docker network"
+    docker run --rm --name pgloader --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:ccl.latest pgloader $1
   fi
 }
 
@@ -61,7 +61,9 @@ load database
 
  WITH include drop, create tables, create indexes, reset sequences
 
-  SET work_mem to '16MB', maintenance_work_mem to '512 MB'
+  SET work_mem to '128 MB', maintenance_work_mem to '512 MB'
+
+ WITH batch size = 5MB, prefetch rows = 25000
 
  CAST type string to text;
 EOF
@@ -151,7 +153,7 @@ done
 echo "----------------------------------------------"
 echo "#### Add id to signatory table "
 $SQLCMD "
-ALTER TABLE signatory ADD COLUMN IF NOT EXISTS congressperson_id text;
+ALTER TABLE signatory ADD COLUMN IF NOT EXISTS congressperson_id integer;
 UPDATE signatory SET congressperson_id = congressperson.cv_id
 FROM congressperson 
 WHERE signatory.congressperson_slug = congressperson.congressperson_slug;
@@ -160,7 +162,7 @@ WHERE signatory.congressperson_slug = congressperson.congressperson_slug;
 echo "----------------------------------------------"
 echo "#### Add id to tracking table "
 $SQLCMD "
-ALTER TABLE tracking ADD COLUMN IF NOT EXISTS commission_id text;
+ALTER TABLE tracking ADD COLUMN IF NOT EXISTS commission_id uuid;
 UPDATE tracking SET commission_id = commission.commission_id
 FROM commission 
 WHERE tracking.commission_slug = commission.commission_slug;
@@ -169,17 +171,60 @@ WHERE tracking.commission_slug = commission.commission_slug;
 echo "----------------------------------------------"
 echo "#### Add id to law_project table "
 $SQLCMD "
-ALTER TABLE law_project ADD COLUMN IF NOT EXISTS last_commission_id text;
+ALTER TABLE law_project ADD COLUMN IF NOT EXISTS last_commission_id UUID;
 UPDATE law_project SET last_commission_id = commission.commission_id
 FROM commission 
 WHERE law_project.last_commission_slug = commission.commission_slug;
 "
 
 $SQLCMD "
-ALTER TABLE law_project ADD COLUMN IF NOT EXISTS parliamentary_group_id text;
+ALTER TABLE law_project ADD COLUMN IF NOT EXISTS parliamentary_group_id UUID;
 UPDATE law_project SET parliamentary_group_id =
 parliamentary_group.parliamentary_group_id
 FROM parliamentary_group 
 WHERE law_project.parliamentary_group_slug =
 parliamentary_group.parliamentary_group_slug;
+"
+
+#4. Update datatypes
+echo "----------------------------------------------"
+echo "#### Update datatypes"
+$SQLCMD "
+ALTER TABLE law_project ALTER COLUMN presentation_date TYPE date USING
+presentation_date::date;
+ALTER TABLE tracking ALTER COLUMN date TYPE date USING date::date;
+"
+
+#5. Add missing indexes and foreign keys
+echo "----------------------------------------------"
+echo "#### Add indexes and foreign keys"
+$SQLCMD "
+ALTER TABLE law_project
+  ADD CONSTRAINT law_project_commission_fk1 FOREIGN KEY (\"last_commission_id\") 
+  REFERENCES commission (\"commission_id\") 
+  ON DELETE NO ACTION ON UPDATE NO ACTION;  
+
+ALTER TABLE law_project
+  ADD CONSTRAINT law_project_parliamentary_group_fk1 FOREIGN KEY
+  (\"parliamentary_group_id\") 
+  REFERENCES parliamentary_group (\"parliamentary_group_id\") 
+  ON DELETE NO ACTION ON UPDATE NO ACTION;  
+
+ALTER TABLE tracking
+  ADD CONSTRAINT tracking_commission_fk1 FOREIGN KEY
+  (\"commission_id\") 
+  REFERENCES commission (\"commission_id\") 
+  ON DELETE NO ACTION ON UPDATE NO ACTION;  
+
+ALTER TABLE signatory
+  ADD CONSTRAINT signatory_congressperson_fk1 FOREIGN KEY
+  (\"congressperson_id\") 
+  REFERENCES congressperson (\"cv_id\") 
+  ON DELETE NO ACTION ON UPDATE NO ACTION;  
+
+CREATE INDEX law_project_idx ON law_project(id, period, number,legislature,
+  last_commission_id,parliamentary_group_id);
+
+CREATE INDEX signatory_idx ON signatory(law_project_id, congressperson_id, 
+  signatory_type);
 "
