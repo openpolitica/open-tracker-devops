@@ -15,10 +15,10 @@ working_tables=(\
   seguimiento \
   proyecto_ley \
   #Corresponding english name
-  signatory \
+  authorship \
   grouped_initiative \
   tracking \
-  law_project \
+  bill \
 )
 
 SQLCMD="psql -U ${PGUSER} -w  -h ${PGHOST} -c "
@@ -77,10 +77,10 @@ rm script
 # 1. Add slugs to tables
 # Add slugs to facilitate comparison with congressname
 echo "----------------------------------------------"
-echo "#### Add slug to signatory table "
+echo "#### Add slug to authorship table "
 $SQLCMD "
-ALTER TABLE signatory ADD COLUMN IF NOT EXISTS congressperson_slug text;
-UPDATE signatory SET congressperson_slug =
+ALTER TABLE authorship ADD COLUMN IF NOT EXISTS congressperson_slug text;
+UPDATE authorship SET congressperson_slug =
 slugify(concat(split_part(congressperson::TEXT,',', 2), ' ',
 split_part(congressperson::TEXT,',', 1)));
 "
@@ -88,22 +88,22 @@ split_part(congressperson::TEXT,',', 1)));
 echo "----------------------------------------------"
 echo "#### Add slug to tracking table "
 $SQLCMD "
-ALTER TABLE tracking ADD COLUMN IF NOT EXISTS commission_slug text;
-UPDATE tracking SET commission_slug =
-slugify(commission::TEXT);
+ALTER TABLE tracking ADD COLUMN IF NOT EXISTS committee_slug text;
+UPDATE tracking SET committee_slug =
+slugify(committee::TEXT);
 "
 
 echo "----------------------------------------------"
-echo "#### Add slug to law_project table "
+echo "#### Add slug to bill table "
 $SQLCMD "
-ALTER TABLE law_project ADD COLUMN IF NOT EXISTS last_commission_slug text;
-UPDATE law_project SET last_commission_slug =
-slugify(last_commission::TEXT);
+ALTER TABLE bill ADD COLUMN IF NOT EXISTS last_committee_slug text;
+UPDATE bill SET last_committee_slug =
+slugify(last_committee::TEXT);
 "
 
 $SQLCMD "
-ALTER TABLE law_project ADD COLUMN IF NOT EXISTS parliamentary_group_slug text;
-UPDATE law_project SET parliamentary_group_slug =
+ALTER TABLE bill ADD COLUMN IF NOT EXISTS parliamentary_group_slug text;
+UPDATE bill SET parliamentary_group_slug =
 slugify(parliamentary_group::TEXT);
 "
 
@@ -127,7 +127,7 @@ right_slugs=(\
 j=0
 for slug in ${wrong_slugs[@]}; do
   $SQLCMD "
-   UPDATE signatory SET congressperson_slug = '${right_slugs[j]}' WHERE
+   UPDATE authorship SET congressperson_slug = '${right_slugs[j]}' WHERE
    congressperson_slug = '${wrong_slugs[j]}';"
   ((j++))
 done
@@ -144,45 +144,45 @@ common_slugs=(\
 j=0
 for slug in ${non_common_slugs[@]}; do
   $SQLCMD "
-   UPDATE law_project SET parliamentary_group_slug = '${common_slugs[j]}' WHERE
+   UPDATE bill SET parliamentary_group_slug = '${common_slugs[j]}' WHERE
    parliamentary_group_slug = '${non_common_slugs[j]}';"
   ((j++))
 done
 
 # 3. Add corresponding IDs
 echo "----------------------------------------------"
-echo "#### Add id to signatory table "
+echo "#### Add id to authorship table "
 $SQLCMD "
-ALTER TABLE signatory ADD COLUMN IF NOT EXISTS congressperson_id integer;
-UPDATE signatory SET congressperson_id = congressperson.cv_id
+ALTER TABLE authorship ADD COLUMN IF NOT EXISTS congressperson_id integer;
+UPDATE authorship SET congressperson_id = congressperson.cv_id
 FROM congressperson 
-WHERE signatory.congressperson_slug = congressperson.congressperson_slug;
+WHERE authorship.congressperson_slug = congressperson.congressperson_slug;
 "
 
 echo "----------------------------------------------"
 echo "#### Add id to tracking table "
 $SQLCMD "
-ALTER TABLE tracking ADD COLUMN IF NOT EXISTS commission_id uuid;
-UPDATE tracking SET commission_id = commission.commission_id
-FROM commission 
-WHERE tracking.commission_slug = commission.commission_slug;
+ALTER TABLE tracking ADD COLUMN IF NOT EXISTS committee_id uuid;
+UPDATE tracking SET committee_id = committee.committee_id
+FROM committee 
+WHERE tracking.committee_slug = committee.committee_slug;
 "
 
 echo "----------------------------------------------"
-echo "#### Add id to law_project table "
+echo "#### Add id to bill table "
 $SQLCMD "
-ALTER TABLE law_project ADD COLUMN IF NOT EXISTS last_commission_id UUID;
-UPDATE law_project SET last_commission_id = commission.commission_id
-FROM commission 
-WHERE law_project.last_commission_slug = commission.commission_slug;
+ALTER TABLE bill ADD COLUMN IF NOT EXISTS last_committee_id UUID;
+UPDATE bill SET last_committee_id = committee.committee_id
+FROM committee 
+WHERE bill.last_committee_slug = committee.committee_slug;
 "
 
 $SQLCMD "
-ALTER TABLE law_project ADD COLUMN IF NOT EXISTS parliamentary_group_id UUID;
-UPDATE law_project SET parliamentary_group_id =
+ALTER TABLE bill ADD COLUMN IF NOT EXISTS parliamentary_group_id UUID;
+UPDATE bill SET parliamentary_group_id =
 parliamentary_group.parliamentary_group_id
 FROM parliamentary_group 
-WHERE law_project.parliamentary_group_slug =
+WHERE bill.parliamentary_group_slug =
 parliamentary_group.parliamentary_group_slug;
 "
 
@@ -190,7 +190,7 @@ parliamentary_group.parliamentary_group_slug;
 echo "----------------------------------------------"
 echo "#### Update datatypes"
 $SQLCMD "
-ALTER TABLE law_project ALTER COLUMN presentation_date TYPE date USING
+ALTER TABLE bill ALTER COLUMN presentation_date TYPE date USING
 presentation_date::date;
 ALTER TABLE tracking ALTER COLUMN date TYPE date USING date::date;
 "
@@ -199,32 +199,32 @@ ALTER TABLE tracking ALTER COLUMN date TYPE date USING date::date;
 echo "----------------------------------------------"
 echo "#### Add indexes and foreign keys"
 $SQLCMD "
-ALTER TABLE law_project
-  ADD CONSTRAINT law_project_commission_fk1 FOREIGN KEY (\"last_commission_id\") 
-  REFERENCES commission (\"commission_id\") 
+ALTER TABLE bill
+  ADD CONSTRAINT bill_committee_fk1 FOREIGN KEY (\"last_committee_id\") 
+  REFERENCES committee (\"committee_id\") 
   ON DELETE NO ACTION ON UPDATE NO ACTION;  
 
-ALTER TABLE law_project
-  ADD CONSTRAINT law_project_parliamentary_group_fk1 FOREIGN KEY
+ALTER TABLE bill
+  ADD CONSTRAINT bill_parliamentary_group_fk1 FOREIGN KEY
   (\"parliamentary_group_id\") 
   REFERENCES parliamentary_group (\"parliamentary_group_id\") 
   ON DELETE NO ACTION ON UPDATE NO ACTION;  
 
 ALTER TABLE tracking
-  ADD CONSTRAINT tracking_commission_fk1 FOREIGN KEY
-  (\"commission_id\") 
-  REFERENCES commission (\"commission_id\") 
+  ADD CONSTRAINT tracking_committee_fk1 FOREIGN KEY
+  (\"committee_id\") 
+  REFERENCES committee (\"committee_id\") 
   ON DELETE NO ACTION ON UPDATE NO ACTION;  
 
-ALTER TABLE signatory
-  ADD CONSTRAINT signatory_congressperson_fk1 FOREIGN KEY
+ALTER TABLE authorship
+  ADD CONSTRAINT authorship_congressperson_fk1 FOREIGN KEY
   (\"congressperson_id\") 
   REFERENCES congressperson (\"cv_id\") 
   ON DELETE NO ACTION ON UPDATE NO ACTION;  
 
-CREATE INDEX law_project_idx ON law_project(id, period, number,legislature,
-  last_commission_id,parliamentary_group_id);
+CREATE INDEX bill_idx ON bill(id, period, number,legislature,
+  last_committee_id,parliamentary_group_id);
 
-CREATE INDEX signatory_idx ON signatory(law_project_id, congressperson_id, 
-  signatory_type);
+CREATE INDEX authorship_idx ON authorship(bill_id, congressperson_id, 
+  authorship_type);
 "

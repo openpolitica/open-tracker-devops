@@ -49,6 +49,6 @@ BACKUP_FOLDER=${INIT_DIR}/backup
 mkdir -p $BACKUP_FOLDER
 BACKUP_NAME=backup_projects.sql
 
-pg_dump --data-only --table="(law_project|tracking|grouped_initiative|signatory)" > $BACKUP_FOLDER/$BACKUP_NAME
+pg_dump --data-only --table="(bill|tracking|grouped_initiative|authorship)" > $BACKUP_FOLDER/$BACKUP_NAME
 
 delete_container $TMP_CONTAINER_NAME

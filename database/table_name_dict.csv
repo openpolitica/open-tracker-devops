@@ -19,7 +19,7 @@ sentencia_penal,judgment_penal
 sentencias_ec,judgment_ec
 congresista,congressperson
 partidos_politicos,political_party
-firmante,signatory
+firmante,authorship
 iniciativa_agrupada,grouped_initiative
-proyecto_ley,law_project
+proyecto_ley,bill
 seguimiento,tracking

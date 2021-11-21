@@ -25,7 +25,7 @@ BACKUP_FILEPATH_LOCAL=${BACKUP_FOLDER}/${BACKUP_NAME_LOCAL}
 BACKUP_FILEPATH_REMOTE=${BACKUP_FOLDER}/${BACKUP_NAME_REMOTE}
 
 #Create dump from local database
-pg_dump --data-only --table="(law_project|tracking|grouped_initiative|signatory)" > $BACKUP_FILEPATH_LOCAL
+pg_dump --data-only --table="(bill|tracking|grouped_initiative|authorship)" > $BACKUP_FILEPATH_LOCAL
 
 #Get backup file from Google drive
 DRIVE_SYNC_FOLDER=drive-sync 

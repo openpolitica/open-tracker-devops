@@ -31,8 +31,8 @@ centro_trabajo_org_politica,workplace_political_organization
 circunscripcion,district
 coautores,co_authors
 comentario,comment
-comision,commission
-comisiones,commissions
+comision,committee
+comisiones,committees
 concluyo,finished
 congresista,congressperson
 cumple_fallo,accomplish_verdict
@@ -78,7 +78,7 @@ fallo,verdict
 fallo_obliga,verdict_obliges
 fallo_penal,verdict_penal
 fecha,date
-firmante_tipo,signatory_type
+firmante_tipo,authorship_type
 firmantes,signatories
 grupo_parlamentario,parliamentary_group
 hasta_actualidad,to_the_present
@@ -133,7 +133,7 @@ organo_penal_judicial,judicial_criminal_body
 otro_ingreso_privado,other_private_income
 otro_ingreso_publico,other_public_income
 papeletas_monto,ballots_ammount
-papeletas_sat,ballot_sat
+papeletas_sat,ballots_sat
 periodo,period
 placa,license_plate
 plan_de_gobierno_url,government_plan_url
@@ -150,7 +150,7 @@ procesos,process
 procesos_electorales_ganados,electoral_process_won
 procesos_electorales_participados,electoral_process_participated
 proponente,proponent
-proyecto_ley_id,law_project_id
+proyecto_ley_id,bill_id
 remuneracion_bruta_privado,gross_remuneration_private
 remuneracion_bruta_publico,gross_remuneration_public
 renta_individual_privado,individual_income_private
@@ -187,7 +187,7 @@ ubicacion_pais,location_country
 ubicacion_provincia,location_province
 ubicacion_ubigeo,location_ubigeo
 uit,uit
-ultima_comision,last_commission
+ultima_comision,last_committee
 ultimo_estado,last_status
 vacancia,vacancy
 valor,value

@@ -10,10 +10,10 @@
 
 # Includes all working tables
 working_tables=(\
-  signatory \
+  authorship \
   grouped_initiative \
   tracking \
-  law_project \
+  bill \
 )
 
 SQLCMD="psql -U ${PGUSER} -w  -h ${PGHOST} -c "
