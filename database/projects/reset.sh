@@ -86,11 +86,17 @@ split_part(congressperson::TEXT,',', 1)));
 "
 
 echo "----------------------------------------------"
-echo "#### Add slug to tracking table "
+echo "#### Add slugs to tracking table "
 $SQLCMD "
 ALTER TABLE tracking ADD COLUMN IF NOT EXISTS committee_slug text;
 UPDATE tracking SET committee_slug =
 slugify(committee::TEXT);
+"
+
+$SQLCMD "
+ALTER TABLE tracking ADD COLUMN IF NOT EXISTS status_slug text;
+UPDATE tracking SET status_slug =
+slugify(status::TEXT);
 "
 
 echo "----------------------------------------------"
@@ -99,6 +105,18 @@ $SQLCMD "
 ALTER TABLE bill ADD COLUMN IF NOT EXISTS last_committee_slug text;
 UPDATE bill SET last_committee_slug =
 slugify(last_committee::TEXT);
+"
+
+$SQLCMD "
+ALTER TABLE bill ADD COLUMN IF NOT EXISTS legislature_slug text;
+UPDATE bill SET legislature_slug =
+slugify(legislature::TEXT);
+"
+
+$SQLCMD "
+ALTER TABLE bill ADD COLUMN IF NOT EXISTS last_status_slug text;
+UPDATE bill SET last_status_slug =
+slugify(last_status::TEXT);
 "
 
 $SQLCMD "
@@ -168,6 +186,13 @@ FROM committee
 WHERE tracking.committee_slug = committee.committee_slug;
 "
 
+$SQLCMD "
+ALTER TABLE tracking ADD COLUMN IF NOT EXISTS status_id uuid;
+UPDATE tracking SET status_id = bill_status.bill_status_id
+FROM bill_status 
+WHERE tracking.status_slug = bill_status.bill_status_slug;
+"
+
 echo "----------------------------------------------"
 echo "#### Add id to bill table "
 $SQLCMD "
@@ -175,6 +200,20 @@ ALTER TABLE bill ADD COLUMN IF NOT EXISTS last_committee_id UUID;
 UPDATE bill SET last_committee_id = committee.committee_id
 FROM committee 
 WHERE bill.last_committee_slug = committee.committee_slug;
+"
+
+$SQLCMD "
+ALTER TABLE bill ADD COLUMN IF NOT EXISTS legislature_id UUID;
+UPDATE bill SET legislature_id = legislature.legislature_id
+FROM legislature 
+WHERE bill.legislature_slug = legislature.legislature_slug;
+"
+
+$SQLCMD "
+ALTER TABLE bill ADD COLUMN IF NOT EXISTS last_status_id UUID;
+UPDATE bill SET last_status_id = bill_status.bill_status_id
+FROM bill_status 
+WHERE bill.last_status_slug = bill_status.bill_status_slug;
 "
 
 $SQLCMD "
@@ -205,6 +244,16 @@ ALTER TABLE bill
   ON DELETE NO ACTION ON UPDATE NO ACTION;  
 
 ALTER TABLE bill
+  ADD CONSTRAINT bill_bill_status_fk1 FOREIGN KEY (\"last_status_id\") 
+  REFERENCES bill_status (\"bill_status_id\") 
+  ON DELETE NO ACTION ON UPDATE NO ACTION;  
+
+ALTER TABLE bill
+  ADD CONSTRAINT bill_legislature_fk1 FOREIGN KEY (\"legislature_id\") 
+  REFERENCES legislature (\"legislature_id\") 
+  ON DELETE NO ACTION ON UPDATE NO ACTION;  
+  
+ALTER TABLE bill
   ADD CONSTRAINT bill_parliamentary_group_fk1 FOREIGN KEY
   (\"parliamentary_group_id\") 
   REFERENCES parliamentary_group (\"parliamentary_group_id\") 
@@ -216,14 +265,20 @@ ALTER TABLE tracking
   REFERENCES committee (\"committee_id\") 
   ON DELETE NO ACTION ON UPDATE NO ACTION;  
 
+ALTER TABLE tracking
+  ADD CONSTRAINT tracking_bill_status_fk1 FOREIGN KEY
+  (\"status_id\") 
+  REFERENCES bill_status (\"bill_status_id\") 
+  ON DELETE NO ACTION ON UPDATE NO ACTION;  
+
 ALTER TABLE authorship
   ADD CONSTRAINT authorship_congressperson_fk1 FOREIGN KEY
   (\"congressperson_id\") 
   REFERENCES congressperson (\"cv_id\") 
   ON DELETE NO ACTION ON UPDATE NO ACTION;  
 
-CREATE INDEX bill_idx ON bill(id, period, number,legislature,
-  last_committee_id,parliamentary_group_id);
+CREATE INDEX bill_idx ON bill(id, period, number,legislature_id,
+  last_committee_id,parliamentary_group_id, last_status_id);
 
 CREATE INDEX authorship_idx ON authorship(bill_id, congressperson_id, 
   authorship_type);
