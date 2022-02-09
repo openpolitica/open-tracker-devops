@@ -47,7 +47,7 @@ export PGPASSWORD=$TMP_POSTGRES_PASSWORD
 #Dump database into a file
 BACKUP_FOLDER=${INIT_DIR}/backup
 mkdir -p $BACKUP_FOLDER
-BACKUP_NAME=backup_projects.sql
+BACKUP_NAME=backup_bills.sql
 
 pg_dump --data-only --table="(bill|tracking|grouped_initiative|authorship)" > $BACKUP_FOLDER/$BACKUP_NAME
 
