@@ -1,0 +1,37 @@
+name: 'Update image for bill (google-drive)'
+
+on:
+  workflow_dispatch:
+    branches:
+    - master
+    inputs:
+      env_type:
+        description: 'Environment type'
+        required: true
+        default: 'staging'
+
+jobs:
+  deploy:
+    name: 'Create bills image'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: .
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    
+    - name: Execute script
+      run: |
+        cd database/
+        GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }} GOOGLE_AUTH_ENCODED=${{ secrets.GOOGLE_AUTH_ENCODED }} ./bills/create-image.sh
+
+    - name: Upload generated image
+      uses: actions/upload-artifact@v2
+      with:
+        name: backup_bills.sql
+        path: database/backup/backup_bills.sql
+
