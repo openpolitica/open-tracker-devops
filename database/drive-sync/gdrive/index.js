@@ -17,7 +17,7 @@ function setAuthKeyFile(fileName) {
 
 async function getFiles(parent = null) {
   const drive = google.drive("v3");
-  const q = parent?.id ? `'${parent.id}' in parents` : "";
+  const q = parent ? (parent.id ? `'${parent.id}' in parents` : "") : "";
   try {
     const res = await drive.files.list({
       q: q,
@@ -48,7 +48,7 @@ async function getFiles(parent = null) {
 async function getFile(fileName, parent = null) {
   const drive = google.drive("v3");
   let q = "mimeType!='application/vnd.google-apps.folder'";
-  q += parent?.id ? `and ('${parent.id}' in parents)` : "";
+  q += parent ? (parent.id ? `and ('${parent.id}' in parents)` : "") : "";
   try {
     const res = await drive.files.list({
       q: q,
@@ -78,7 +78,7 @@ async function getFile(fileName, parent = null) {
 async function getFolder(folderName, parent = null) {
   const drive = google.drive("v3");
   let q = "mimeType='application/vnd.google-apps.folder'";
-  q += parent?.id ? `and ('${parent.id}' in parents)` : "";
+  q += parent ? (parent.id ? `and ('${parent.id}' in parents)` : "") : "";
   try {
     const res = await drive.files.list({
       q: q,
@@ -110,7 +110,7 @@ async function createFolder(folderName, parent = null) {
   let fileMetadata = {
     name: folderName,
     mimeType: "application/vnd.google-apps.folder",
-    parents: [parent?.id ? parent.id : ""],
+    parents: [parent ? (parent.id ? parent.id : "") : ""],
   };
 
   try {
@@ -134,7 +134,7 @@ async function createFile(fileName, path, parent = null) {
   const drive = google.drive("v3");
   let fileMetadata = {
     name: fileName,
-    parents: [parent?.id ? parent.id : ""],
+    parents: [parent ? (parent.id ? parent.id : "") : ""],
   };
   let media = {
     mimeType: "text/plain",
