@@ -1,6 +1,11 @@
 name: 'Update bills data from image (server)'
 
 on:
+  workflow_run:
+    workflows: ['Update bills image (google-drive)']
+    types:
+      - completed
+
   workflow_dispatch:
     branches:
     - master
@@ -40,6 +45,8 @@ jobs:
 
     - name: Execute commands
       uses: appleboy/ssh-action@master
+      env:
+        DEFAULT_ENV_TYPE: 'staging'
       with:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USERNAME }}
@@ -47,4 +54,4 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         script: |
           cd congreso/open-tracker-devops/database
-          ENV_TYPE=${{ github.event.inputs.env_type }} GOOGLE_AUTH_ENCODED=${{ secrets.GOOGLE_AUTH_ENCODED }} ./bills/sync-local.sh
+          ENV_TYPE=${{ github.event.inputs.env_type || env.DEFAULT_ENV_TYPE }} GOOGLE_AUTH_ENCODED=${{ secrets.GOOGLE_AUTH_ENCODED }} ./bills/sync-local.sh
