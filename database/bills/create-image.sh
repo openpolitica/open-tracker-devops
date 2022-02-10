@@ -14,7 +14,6 @@ TMP_CONTAINER_NAME=tmp-database
 
 
 function delete_container() {
-  docker ps -q --filter "name=$1" | grep -q . && docker stop $1 
   docker ps -qa --filter "name=$1" | grep -q . && docker rm -fv $1
 }
 
