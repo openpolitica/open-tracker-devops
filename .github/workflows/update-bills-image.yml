@@ -52,9 +52,13 @@ jobs:
     
     - name: Download generated image
       uses: actions/download-artifact@v2
+      id: download
       with:
         name: backup_bills.sql
         path: database/backup/backup_bills.sql
+
+    - name: Echo download path
+      run: echo ${{steps.download.outputs.download-path}}
 
     - name: Execute script
       run: |
