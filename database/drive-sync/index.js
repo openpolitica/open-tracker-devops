@@ -197,14 +197,9 @@ async function run() {
 
     if (options.force) {
       logger.notice("Forced update");
-      await syncFile(
-        fileName,
-        folderName,
-        sourcePath,
-        (checkDifferent = false)
-      );
+      await syncFile(fileName, folderName, sourcePath, false, backupFolder);
     } else {
-      await syncFile(fileName, folderName, sourcePath);
+      await syncFile(fileName, folderName, sourcePath, true, backupFolder);
     }
     return;
   }

@@ -14,7 +14,7 @@ BACKUP_FILE=$BACKUP_FOLDER/$BACKUP_NAME
 #1. Create image if not exists
 if [[ ! -f $BACKUP_FILE ]]; then
   echo "Backup file not found, creating it..."
-  ./projects/create-image.sh
+  ./bills/create-image.sh
   echo "Backup created"
 fi
 
@@ -28,5 +28,5 @@ fi
 
 cd $DRIVE_SYNC_FOLDER
 npm ci --only=production
-npm run update  -- --type=projects --source-path=$BACKUP_FILE
+npm run update  -- --type=bills --source-path=$BACKUP_FILE
 

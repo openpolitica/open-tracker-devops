@@ -17,13 +17,13 @@ const config = {
       "https://www.googleapis.com/auth/drive.readonly",
     ],
   },
-  types: ["projects", "attendance"],
+  types: ["bills", "attendance"],
   folderNames: {
-    projects: "projects",
+    bills: "bills",
     attendance: "attendance",
   },
   backupFiles: {
-    projects: "backup_projects",
+    bills: "backup_bills",
     attendance: "backup_attendance",
   },
   backupExtension: ".sql",

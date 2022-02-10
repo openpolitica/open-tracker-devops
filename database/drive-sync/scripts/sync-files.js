@@ -8,15 +8,18 @@ async function syncFile(
   fileName,
   containingFolderName,
   sourcePath,
-  checkDifferent = true
+  checkDifferent = true,
+  backupFolder = null
 ) {
-  backupFolder = config.google.backupFolder;
+  if (backupFolder == null) {
+    backupFolder = await getFolder(config.google.backupFolder.name);
+  }
 
   containingFolder = await gdrive.getFolder(containingFolderName, backupFolder);
 
   if (!containingFolder)
     containingFolder = await gdrive.createFolder(
-      containingFolder,
+      containingFolderName,
       backupFolder
     );
 
@@ -24,7 +27,11 @@ async function syncFile(
 
   if (!backupFile) {
     logger.notice("Backup file doesn't exist, creating the corresponding file");
-    backupFile = await gdrive.createFile(fileName, sourcePath, proj_folder);
+    backupFile = await gdrive.createFile(
+      fileName,
+      sourcePath,
+      containingFolder
+    );
     return;
   }
 
