@@ -19,8 +19,8 @@ source ${INIT_DIR}/load-credentials.sh
 
 BACKUP_FOLDER=${INIT_DIR}/backup
 mkdir -p $BACKUP_FOLDER
-BACKUP_NAME_LOCAL=backup_projects_local.sql
-BACKUP_NAME_REMOTE=backup_projects_remote.sql
+BACKUP_NAME_LOCAL=backup_bills_local.sql
+BACKUP_NAME_REMOTE=backup_bills_remote.sql
 BACKUP_FILEPATH_LOCAL=${BACKUP_FOLDER}/${BACKUP_NAME_LOCAL}
 BACKUP_FILEPATH_REMOTE=${BACKUP_FOLDER}/${BACKUP_NAME_REMOTE}
 
@@ -36,7 +36,7 @@ fi
 
 cd $DRIVE_SYNC_FOLDER
 npm ci --only=production
-npm run download  -- --type=projects --dest-path=$BACKUP_FILEPATH_REMOTE
+npm run download  -- --type=bills --dest-path=$BACKUP_FILEPATH_REMOTE
 
 # Compare local with remote
 # Sort to skip moved lines (requires bash)
@@ -49,6 +49,6 @@ fi
 
 # If backup is different from current values clean and update with remote
 cd $INIT_DIR
-./projects/clean-tables.sh
+./bills/clean-tables.sh
 psql -U ${PGUSER} -w  -h ${PGHOST} -d ${PGDATABASE} < $BACKUP_FILEPATH_REMOTE
 
