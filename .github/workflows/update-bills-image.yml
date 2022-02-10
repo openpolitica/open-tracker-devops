@@ -1,4 +1,4 @@
-name: 'Update image for bill (google-drive)'
+name: 'Update bills image (google-drive)'
 
 on:
   workflow_dispatch:
@@ -55,7 +55,7 @@ jobs:
       id: download
       with:
         name: backup_bills.sql
-        path: database/backup/backup_bills.sql
+        path: database/backup/
 
     - name: Echo download path
       run: echo ${{steps.download.outputs.download-path}}
