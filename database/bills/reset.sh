@@ -56,7 +56,7 @@ echo "----------------------------------------------"
 echo "#### Import projects"
 command_file="$(cat << EOF
 load database
-     from https://congreso-proyecto-ley-ba5dldyyv-openpolitica-user.vercel.app/proyectos-ley-2021-2026.db
+     from https://congreso-proyecto-ley-wine.vercel.app/proyectos-ley-2021-2026.db
      into pgsql://${PGUSER}@${PGHOST}:${PGPORT}/${PGDATABASE}
 
  WITH include drop, create tables, create indexes, reset sequences
