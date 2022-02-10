@@ -11,7 +11,7 @@ on:
         default: 'staging'
 
 jobs:
-  deploy:
+  create:
     name: 'Create bills image'
     runs-on: ubuntu-latest
 
@@ -35,3 +35,28 @@ jobs:
         name: backup_bills.sql
         path: database/backup/backup_bills.sql
 
+
+  update:
+    name: 'Update backup in Google Drive'
+    needs: create
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: .
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    
+    - name: Download generated image
+      uses: actions/download-artifact@v2
+      with:
+        name: backup_bills.sql
+        path: database/backup/backup_bills.sql
+
+    - name: Execute script
+      run: |
+        cd database/
+        GOOGLE_AUTH_ENCODED=${{ secrets.GOOGLE_AUTH_ENCODED }} ./bills/sync-remote.sh
