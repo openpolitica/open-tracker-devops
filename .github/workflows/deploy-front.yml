@@ -1,0 +1,31 @@
+name: 'Deploy frontend in vercel'
+
+on:
+  workflow_run:
+    workflows: ['Update bills data from image (server)']
+    types:
+      - completed
+
+  workflow_dispatch:
+    branches:
+    - master
+    inputs:
+      env_type:
+        description: 'Environment type'
+        required: true
+        default: 'staging'
+
+jobs:
+  update:
+    name: 'Deploy with hook'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: .
+
+    steps:
+    - name: Dispatch trigger on vercel
+      run: |
+        curl -X POST https://api.vercel.com/v1/integrations/deploy/QmcwKGEbAyFtfybXBxvuSjFT54dc5dRLmAYNB5jxxXsbeZ/hUg65Lj4CV?buildCache=false
