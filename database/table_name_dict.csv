@@ -23,3 +23,10 @@ firmante,authorship
 iniciativa_agrupada,grouped_initiative
 proyecto_ley,bill
 seguimiento,tracking
+plenos,plenary_session
+asistencia_congresista,attendance_congressperson
+asistencia_grupo_parlamentario,attendance_parliamentary_group
+asistencia_resultado,attendance_result
+votacion_congresista,voting_congressperson
+votacion_grupo_parlamentario,voting_parliamentary_group
+votacion_resultado,voting_result
