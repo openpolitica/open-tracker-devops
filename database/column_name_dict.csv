@@ -1,4 +1,5 @@
 column_name,column_name_en
+abstenciones,abstention
 adherentes,adherents
 afiliacion_cancelacion,affiliation_cancellation
 afiliacion_comite,affiliation_committee
@@ -11,6 +12,8 @@ anio_desde,year_from
 anio_hasta,year_to
 apicounts,apicounts
 aportes_electorales,electoral_contributions
+asunto,subject
+ausentes,absent
 auto_valuo,property_valuation
 autor,author
 bienes_inmuebles_valor,immovables_value
@@ -61,6 +64,7 @@ enlace_foto,link_photo
 estado,status
 estado_id,status_id
 estado_nombre,status_name
+etiquetas,tags
 expediente_codigo,file_code
 expediente_distrito,file_district
 expediente_estado,file_status
@@ -78,12 +82,15 @@ fallo,verdict
 fallo_obliga,verdict_obliges
 fallo_penal,verdict_penal
 fecha,date
+filename,filename
 firmante_tipo,authorship_type
 firmantes,signatories
 grupo_parlamentario,parliamentary_group
+grupo_parlamentario_descripcion,parliamentary_group_description
 hasta_actualidad,to_the_present
 hoja_vida,cv
 hoja_vida_id,cv_id
+hora,time
 id,id
 id_apellido_materno,id_second_surname
 id_apellido_paterno,id_first_surname
@@ -99,6 +106,7 @@ jurado_electoral_nombre,electoral_jury_name
 lat,latitude
 legislatura,legislature
 licencia_conducir,driver_license
+licencias,license
 lista_solicitud_estado,list_request_status
 lista_solicitud_id,list_request_id
 lng,longitude
@@ -114,6 +122,7 @@ nacimiento_fecha,birth_date
 nacimiento_pais,birth_country
 nacimiento_provincia,birth_province
 nacimiento_ubigeo,birth_ubigeo
+no,no
 no_vacancia,no_vacancy
 nombre,name
 nombre_completo,full_name
@@ -132,11 +141,17 @@ organo_judicial_obliga,judicial_criminal_body
 organo_penal_judicial,judicial_criminal_body
 otro_ingreso_privado,other_private_income
 otro_ingreso_publico,other_public_income
+otros,other
+paginas,pages
 papeletas_monto,ballots_ammount
 papeletas_sat,ballots_sat
 periodo,period
+periodo_anual,annual_period
+periodo_parlamentario,parliamentary_period
 placa,license_plate
 plan_de_gobierno_url,government_plan_url
+pleno_id,plenary_session_id
+pleno_titulo,plenary_session_title
 posicion,place
 postula_anio,postulation_year
 postula_departamento,postulation_department
@@ -144,6 +159,8 @@ postula_distrito,postulation_district
 postula_provincia,postulation_province
 postula_ubigeo,postulation_ubigeo
 presentacion_fecha,presentation_date
+presentes,present
+presidente,president
 proceso_electoral,electoral_process
 proceso_electoral_id,electoral_process_id
 procesos,process
@@ -151,10 +168,13 @@ procesos_electorales_ganados,electoral_process_won
 procesos_electorales_participados,electoral_process_participated
 proponente,proponent
 proyecto_ley_id,bill_id
+quorum,quorum
 remuneracion_bruta_privado,gross_remuneration_private
 remuneracion_bruta_publico,gross_remuneration_public
 renta_individual_privado,individual_income_private
 renta_individual_publico,individual_income_public
+resultado,result
+resultado_descripcion,result_description
 sancion_servir,servir_sanction
 sancion_servir_institucion,servir_sanction_institution
 sancion_servir_registro,servir_sanction_registry
@@ -163,6 +183,7 @@ sentencias_civiles,judgment_civil
 sentencias_ec_civil_cnt,judgments_ec_civil_count
 sentencias_ec_penal_cnt,judgments_ec_penal_count
 sentencias_penales,judgment_penal
+si,yes
 si_vacancia,yes_vacancy
 sumilla,summary
 sunarp_partida,sunarp_budget
@@ -189,6 +210,7 @@ ubicacion_ubigeo,location_ubigeo
 uit,uit
 ultima_comision,last_committee
 ultimo_estado,last_status
+url,url
 vacancia,vacancy
 valor,value
 vigente,active
