@@ -7,8 +7,8 @@ services:
       - 3000
     environment:
       GF_INSTALL_PLUGINS: frser-sqlite-datasource
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: password
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USERNAME}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
       VIRTUAL_HOST: grafana.data.congreso.${HOST_DOMAIN}
       VIRTUAL_PORT: 3000
       LETSENCRYPT_HOST: grafana.data.congreso.${HOST_DOMAIN}
