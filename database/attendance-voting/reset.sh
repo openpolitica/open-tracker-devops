@@ -13,14 +13,7 @@ if [[ -z $PROJECT_DIRECTORY ]]; then
 	PROJECT_DIRECTORY=${HOME}/congreso
 fi
 
-# Verify environment
-if [[ $ENV_TYPE == "production" ]]; then
-	ENV_DIRECTORY=${PROJECT_DIRECTORY}/production
-else
-	ENV_DIRECTORY=${PROJECT_DIRECTORY}/staging
-fi
-
-DATA_DIRECTORY=${ENV_DIRECTORY}/congreso-pleno-asistencia-votacion
+DATA_DIRECTORY=${PROJECT_DIRECTORY}/congreso-pleno-asistencia-votacion
 PLENARY_DB_FILENAME=plenos.db
 ATTENDANCE_DB_FILENAME=2021-2026-asistencias-votaciones.db
 PLENARY_DB_PATH=${DATA_DIRECTORY}/${PLENARY_DB_FILENAME}
@@ -62,6 +55,7 @@ working_tables=(\
   attendance_in_session \
   voting_in_session \
   attendance_congressperson_metrics \
+  attendance_parliamentary_group_metrics \
 )
 
 SQLCMD="psql -U ${PGUSER} -w  -h ${PGHOST} -c "

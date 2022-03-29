@@ -18,3 +18,6 @@ source ${INIT_DIR}/load-credentials.sh
 
 #Import data from bills
 ./bills/reset.sh
+
+#Import data from attendance and voting
+./attendance-voting/reset.sh
