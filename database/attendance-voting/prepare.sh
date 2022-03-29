@@ -6,18 +6,11 @@ if [[ -z $PROJECT_DIRECTORY ]]; then
 	PROJECT_DIRECTORY=${HOME}/congreso
 fi
 
-# Verify environment
-if [[ $ENV_TYPE == "production" ]]; then
-	ENV_DIRECTORY=${PROJECT_DIRECTORY}/production
-else
-	ENV_DIRECTORY=${PROJECT_DIRECTORY}/staging
-fi
-
 GIT_BRANCH="main"
 
-mkdir -p ${ENV_DIRECTORY}
+mkdir -p ${PROJECT_DIRECTORY}
 
-DATA_DIRECTORY=${ENV_DIRECTORY}/congreso-pleno-asistencia-votacion
+DATA_DIRECTORY=${PROJECT_DIRECTORY}/congreso-pleno-asistencia-votacion
 
 # Check if directory and repository exists
 if [[ -d $DATA_DIRECTORY ]]; then
@@ -34,10 +27,10 @@ if [[ -d $DATA_DIRECTORY ]]; then
 		git checkout origin/${GIT_BRANCH}
 	fi
 else 
-	cd ${ENV_DIRECTORY}
+	cd ${PROJECT_DIRECTORY}
 	git clone https://github.com/openpolitica/congreso-pleno-asistencia-votacion.git
 	cd ${DATA_DIRECTORY}
-	git checkout origin/${GIT_BRANCH}
+	git checkout ${GIT_BRANCH}
 fi
 
 
