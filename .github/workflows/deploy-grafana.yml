@@ -47,4 +47,4 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         script: |
           cd congreso/open-tracker-devops/grafana
-          HOST_DOMAIN=${{ secrets.HOST_DOMAIN }} EMAIL_DOMAIN=${{ secrets.EMAIL_DOMAIN }} ENV_TYPE=${{ github.event.inputs.env_type }} docker-compose up -d
+          HOST_DOMAIN=${{ secrets.HOST_DOMAIN }} EMAIL_DOMAIN=${{ secrets.EMAIL_DOMAIN }} ENV_TYPE=${{ github.event.inputs.env_type }} GRAFANA_USERNAME=${{ secrets.GRAFANA_USERNAME }} GRAFANA_PASSWORD=${{ secrets.GRAFANA_PASSWORD }} ./deploy.sh
