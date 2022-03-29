@@ -17,14 +17,14 @@ const config = {
       "https://www.googleapis.com/auth/drive.readonly",
     ],
   },
-  types: ["bills", "attendance"],
+  types: ["bills", "attendanceVoting"],
   folderNames: {
     bills: "bills",
-    attendance: "attendance",
+    attendanceVoting: "attendance-voting",
   },
   backupFiles: {
     bills: "backup_bills",
-    attendance: "backup_attendance",
+    attendanceVoting: "backup_attendance_voting",
   },
   backupExtension: ".sql",
 };
