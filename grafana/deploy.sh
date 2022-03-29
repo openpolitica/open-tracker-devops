@@ -18,8 +18,8 @@ if [[ -z $EMAIL_DOMAIN ]]; then
 	EMAIL_DOMAIN=mail@example.com
 fi
 
-#This is required to enable access to database
-sudo chown -R 472:root ./db
+#Update dbs
+./update-db.sh
 
 #Check if .env file exists and delete previous generated 
 if [[ -f ".env" ]]; then
