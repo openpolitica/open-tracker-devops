@@ -1,4 +1,4 @@
-name: 'Update attendance voting repository (sqlite db)'
+name: 'Update attendance-voting repository (sqlite db)'
 
 on:
   workflow_dispatch:

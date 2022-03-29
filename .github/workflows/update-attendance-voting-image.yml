@@ -1,6 +1,11 @@
 name: 'Update attendance-voting image (google-drive)'
 
 on:
+  workflow_run:
+    workflows: ['Update attendance-voting repository (sqlite db)']
+    types:
+      - completed
+
   workflow_dispatch:
     branches:
     - master
