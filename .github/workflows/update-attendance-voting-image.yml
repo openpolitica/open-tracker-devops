@@ -1,0 +1,61 @@
+name: 'Update attendance-voting image (google-drive)'
+
+on:
+  workflow_dispatch:
+    branches:
+    - master
+
+jobs:
+  create:
+    name: 'Create attendance-voting image'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: .
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    
+    - name: Execute script
+      run: |
+        cd database/
+        GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }} GOOGLE_AUTH_ENCODED=${{ secrets.GOOGLE_AUTH_ENCODED }} ./attendance-voting/create-image.sh
+
+    - name: Upload generated image
+      uses: actions/upload-artifact@v2
+      with:
+        name: backup_attendance_voting.sql
+        path: database/backup/backup_attendance_voting.sql
+
+
+  update:
+    name: 'Update backup in Google Drive'
+    needs: create
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: .
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    
+    - name: Download generated image
+      uses: actions/download-artifact@v2
+      id: download
+      with:
+        name: backup_attendance_voting.sql
+        path: database/backup/
+
+    - name: Echo download path
+      run: echo ${{steps.download.outputs.download-path}}
+
+    - name: Execute script
+      run: |
+        cd database/
+        GOOGLE_AUTH_ENCODED=${{ secrets.GOOGLE_AUTH_ENCODED }} ./attendance-voting/sync-remote.sh
