@@ -19,6 +19,7 @@ jobs:
   update:
     name: 'Update with ssh'
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} || ${{ github.event_name == 'workflow_dispatch' }}
 
     defaults:
       run:
