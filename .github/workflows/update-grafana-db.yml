@@ -1,6 +1,11 @@
 name: 'Update grafana db'
 
 on:
+  workflow_run:
+    workflows: ['Update attendance-voting repository (sqlite db)']
+    types:
+      - completed
+
   workflow_dispatch:
     branches:
     - master
@@ -14,6 +19,7 @@ jobs:
   deploy:
     name: 'Deployment with ssh'
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} || ${{ github.event_name == 'workflow_dispatch' }}
 
     defaults:
       run:
