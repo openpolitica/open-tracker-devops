@@ -61,6 +61,7 @@ working_tables=(\
   attendance_congressperson \
   attendance_in_session \
   voting_in_session \
+  attendance_congressperson_metrics \
 )
 
 SQLCMD="psql -U ${PGUSER} -w  -h ${PGHOST} -c "
@@ -198,6 +199,12 @@ $SQLCMD "
 SELECT add_uuid('plenary_session');
 SELECT add_uuid('attendance_in_session');
 SELECT add_uuid('voting_in_session');
+SELECT add_uuid('attendance_result');
+SELECT add_uuid('attendance_congressperson');
+SELECT add_uuid('attendance_parliamentary_group');
+SELECT add_uuid('voting_result');
+SELECT add_uuid('voting_congressperson');
+SELECT add_uuid('voting_parliamentary_group');
 "
 
 
@@ -239,22 +246,31 @@ for slug in ${wrong_slugs[@]}; do
   ((j++))
 done
 
-## In case of avanza pais, their name is too long so, use the short name
-#non_common_slugs=(\
-#  "avanza-pais---partido-de-integracion-social" \
-#)
-#
-#common_slugs=(\
-#  "avanza-pais" \
-#)
-#
-#j=0
-#for slug in ${non_common_slugs[@]}; do
-#  $SQLCMD "
-#   UPDATE bill SET parliamentary_group_slug = '${common_slugs[j]}' WHERE
-#   parliamentary_group_slug = '${non_common_slugs[j]}';"
-#  ((j++))
-#done
+# In case of avanza pais, some codes are wrong
+echo "----------------------------------------------"
+echo "#### Fix parliamentary_group id"
+wrong_codes=(\
+  "AVP" \
+  "APAIS" \
+)
+
+right_codes=(\
+  "AP-PIS" \
+  "AP-PIS" \
+)
+
+j=0
+for slug in ${wrong_codes[@]}; do
+  $SQLCMD "
+   UPDATE attendance_parliamentary_group SET parliamentary_group =
+   '${right_codes[j]}' WHERE
+   parliamentary_group = '${wrong_codes[j]}';"
+  $SQLCMD "
+   UPDATE voting_parliamentary_group SET parliamentary_group =
+   '${right_codes[j]}' WHERE
+   parliamentary_group = '${wrong_codes[j]}';"
+  ((j++))
+done
 
 # 3. Add corresponding IDs
 echo "----------------------------------------------"
@@ -441,3 +457,87 @@ ALTER TABLE voting_parliamentary_group
 #CREATE INDEX authorship_idx ON authorship(bill_id, congressperson_id, 
 #  authorship_type);
 #"
+
+# 5. Obtain metrics for congressperson
+echo "----------------------------------------------"
+echo "#### Create metrics for congressperson"
+$SQLCMD "
+DROP TABLE IF EXISTS attendance_congressperson_metrics;
+CREATE TABLE attendance_congressperson_metrics AS
+SELECT agg.*,
+(agg.present::FLOAT8 / agg.count::FLOAT8)*100.0 AS present_percentage,
+(agg.absent::FLOAT8 / agg.count::FLOAT8)*100.0 AS absent_percentage,
+(agg.license_total::FLOAT8 / agg.count::FLOAT8)*100.0 AS license_percentage,
+(agg.other_total::FLOAT8 / agg.count::FLOAT8)*100.0 AS other_percentage
+FROM
+(SELECT summary.*, 
+summary.license_illness + summary.license_official + summary.license_personal
+AS license_total,
+summary.fault + summary.dead AS other_total
+FROM
+(SELECT attendance_congressperson.congressperson_id, 
+count(id) as count,
+sum(case result when 'PRE' then 1 else 0 end) as present,
+sum(case result when 'AUS' then 1 else 0 end) as absent,
+sum(case result when 'LE' then 1 else 0 end) as license_illness,
+sum(case result when 'LO' then 1 else 0 end) as license_official,
+sum(case result when 'LP' then 1 else 0 end) as license_personal,
+sum(case result when 'FA' then 1 else 0 end) as fault,
+sum(case result when 'F' then 1 else 0 end) as dead
+FROM attendance_congressperson GROUP BY congressperson_id) summary) agg;
+"
+
+$SQLCMD "
+ALTER TABLE attendance_congressperson_metrics
+  ADD CONSTRAINT attendance_congressperson_metrics_congressperson_fk1 
+  FOREIGN KEY (\"congressperson_id\") 
+  REFERENCES congressperson (\"cv_id\") 
+  ON DELETE NO ACTION ON UPDATE NO ACTION;  
+"
+
+echo "----------------------------------------------"
+echo "#### Create metrics for parliamentary_group"
+$SQLCMD "
+ALTER TABLE attendance_parliamentary_group
+  ADD COLUMN IF NOT EXISTS present_percentage float8;
+UPDATE attendance_parliamentary_group SET present_percentage =
+CASE WHEN total!=0 THEN (present::float8 / total::float8)*100.0 ELSE 0.0 END;
+;
+
+ALTER TABLE attendance_parliamentary_group
+  ADD COLUMN IF NOT EXISTS absent_percentage float8;
+UPDATE attendance_parliamentary_group SET absent_percentage =
+CASE WHEN total!=0 THEN (absent::float8 / total::float8)*100.0 ELSE 0.0 END;
+
+ALTER TABLE attendance_parliamentary_group
+  ADD COLUMN IF NOT EXISTS license_percentage float8;
+UPDATE attendance_parliamentary_group SET license_percentage =
+CASE WHEN total!=0 THEN (license::float8 / total::float8)*100.0 ELSE 0.0 END;
+
+ALTER TABLE attendance_parliamentary_group
+  ADD COLUMN IF NOT EXISTS other_percentage float8;
+UPDATE attendance_parliamentary_group SET other_percentage =
+CASE WHEN total!=0 THEN (other::float8 / total::float8)*100.0 ELSE 0.0 END;
+"
+
+$SQLCMD "
+DROP TABLE IF EXISTS attendance_parliamentary_group_metrics;
+CREATE TABLE attendance_parliamentary_group_metrics AS
+SELECT attendance_parliamentary_group.parliamentary_group_id, 
+count(id) as count,
+avg(present_percentage) as present_percentage_mean,
+avg(absent_percentage) as absent_percentage_mean,
+avg(license_percentage) as license_percentage_mean,
+avg(other_percentage) as other_percentage_mean
+FROM attendance_parliamentary_group
+WHERE attendance_parliamentary_group.total != 0
+GROUP BY parliamentary_group_id;
+"
+
+$SQLCMD "
+ALTER TABLE attendance_parliamentary_group_metrics
+  ADD CONSTRAINT attendance_parliamentary_group_metrics_parliamentary_group_fk1 
+  FOREIGN KEY (\"parliamentary_group_id\") 
+  REFERENCES parliamentary_group (\"parliamentary_group_id\") 
+  ON DELETE NO ACTION ON UPDATE NO ACTION;  
+"
