@@ -20,4 +20,4 @@ fi
 
 cd $SHEET_SYNC_FOLDER
 npm ci --only=production
-npm run reset -- --sheet-id ${GLOSSARY_SHEET_ID}
+npm run reset -- --sheet-id ${GLOSSARY_SHEET_ID} --enable-markdown
