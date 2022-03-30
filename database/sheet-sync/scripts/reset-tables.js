@@ -27,7 +27,7 @@ async function createAndPopulateTable(
   if (markdownInfo) {
     const columns = markdownInfo
       .filter((item) => item[0] === tableName)
-      ?.map((element) => element[1]);
+      .map((element) => element[1]);
 
     if (columns && columns.length > 0) {
       const indexes = columns.map((column) => {
