@@ -1,10 +1,12 @@
 const db = require("../db");
 const gapi = require("../gsheet");
 const config = require("../config");
+const md = require("../markdown");
 const { logger } = require("../logger");
 
 const DEFAULT_GSHEET_TABLES_INFO = config.sheetNames.tablesInfo;
 const DEFAULT_GSHEET_COLUMN_TYPES = config.sheetNames.columnTypes;
+const DEFAULT_GSHEET_MARKDOWN_INFO = config.sheetNames.markdownInfo;
 
 async function resetTable(tableName, pk = null, columnTypes = null) {
   //Get info from google-service
@@ -16,11 +18,28 @@ async function resetTable(tableName, pk = null, columnTypes = null) {
 async function createAndPopulateTable(
   tableName,
   pk = null,
-  columnTypes = null
+  columnTypes = null,
+  markdownInfo = null
 ) {
   const rows = await gapi.getData(tableName);
-  await db.createTable(tableName, rows[0], pk, columnTypes);
-  await db.insertSetOfValues(tableName, rows[0], rows.slice(1));
+  const header = rows[0];
+  let tableContent = rows.slice(1);
+  if (markdownInfo) {
+    const columns = markdownInfo
+      .filter((item) => item[0] === tableName)
+      ?.map((element) => element[1]);
+
+    if (columns && columns.length > 0) {
+      const indexes = columns.map((column) => {
+        return header.findIndex((headerColumn) => headerColumn === column);
+      });
+
+      tableContent = tableContent.map((row) => md.markdownfyList(row, indexes));
+    }
+  }
+
+  await db.createTable(tableName, header, pk, columnTypes);
+  await db.insertSetOfValues(tableName, header, tableContent);
   return;
 }
 
@@ -35,7 +54,8 @@ async function deleteListOfTables(listOfTables) {
 async function resetListOfTables(
   listOfTables,
   tablesInfo = null,
-  columnTypes = null
+  columnTypes = null,
+  markdownInfo = null
 ) {
   if (!tablesInfo) {
     logger.warning(
@@ -55,7 +75,8 @@ async function resetListOfTables(
         return await createAndPopulateTable(
           tableName,
           tablesInfo[index][1],
-          columnTypes
+          columnTypes,
+          markdownInfo
         );
       } else {
         logger.warning(
@@ -65,9 +86,15 @@ async function resetListOfTables(
             tablesInfo +
             ". Ignoring."
         );
+        return;
       }
     }
-    return await createAndPopulateTable(tableName, tablesInfo, columnTypes);
+    return await createAndPopulateTable(
+      tableName,
+      tablesInfo,
+      columnTypes,
+      markdownInfo
+    );
   });
 
   return await Promise.all(promises);
@@ -75,7 +102,9 @@ async function resetListOfTables(
 
 async function resetTablesFromSpreadSheet(
   sheetTablesInfo = null,
-  sheetColumnTypes = null
+  sheetColumnTypes = null,
+  sheetMarkdownInfo = null,
+  enableMarkdown = false
 ) {
   const listOfSheets = await gapi.getTables();
 
@@ -101,6 +130,20 @@ async function resetTablesFromSpreadSheet(
 
   const columnTypes = await gapi.getData(sheetColumnTypes, 1);
 
+  let markdownInfo = null;
+  if (enableMarkdown) {
+    logger.notice("Markdown conversion enabled.");
+    if (!sheetMarkdownInfo) {
+      logger.warning(
+        "resetTablesFromSpreadSheet: Sheet name with markdown info not provided. Using default '" +
+          DEFAULT_GSHEET_MARKDOWN_INFO +
+          "'."
+      );
+      sheetMarkdownInfo = DEFAULT_GSHEET_MARKDOWN_INFO;
+    }
+    markdownInfo = await gapi.getData(sheetMarkdownInfo, 1);
+  }
+
   const tablesToUpdate = tablesInfo.filter((table) => table[2]);
 
   const sheetsToUpdate = listOfSheets.filter(
@@ -109,7 +152,12 @@ async function resetTablesFromSpreadSheet(
   );
 
   logger.info("Sheets to update: %O", sheetsToUpdate);
-  return await resetListOfTables(sheetsToUpdate, tablesInfo, columnTypes);
+  return await resetListOfTables(
+    sheetsToUpdate,
+    tablesInfo,
+    columnTypes,
+    markdownInfo
+  );
 }
 
 //(async () => {

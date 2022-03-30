@@ -16,6 +16,7 @@ const config = {
   sheetNames: {
     tablesInfo: "tables",
     columnTypes: "column_type",
+    markdownInfo: "markdown",
     indexes: "indexes",
     foreignKeys: "foreign_keys",
   },

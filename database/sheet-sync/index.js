@@ -63,6 +63,13 @@ const program = new Commander.Command(packageJson.name)
   No create foreign keys
 `
   )
+  .option(
+    "--enable-markdown",
+    `
+
+  Enable conversion from Markdown text to HTML
+`
+  )
   .allowUnknownOption()
   .parse(process.argv);
 
@@ -117,7 +124,7 @@ async function run() {
   await dropForeignKeysFromSpreadSheets();
 
   logger.notice("Reset tables with data from Spreadsheet");
-  await resetTablesFromSpreadSheet();
+  await resetTablesFromSpreadSheet(null, null, null, options.enableMarkdown);
 
   if (options.fk) {
     logger.notice("Creating foreign keys");
