@@ -47,4 +47,4 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         script: |
           cd congreso/open-tracker-devops/database
-          ENV_TYPE=${{ github.event.inputs.env_type }} GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }} GOOGLE_AUTH_ENCODED=${{ secrets.GOOGLE_AUTH_ENCODED }} ./reset-db-all.sh
+          ENV_TYPE=${{ github.event.inputs.env_type }} GLOSSARY_SHEET_ID=${{ secrets.GLOSSARY_SHEET_ID }} GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }} GOOGLE_AUTH_ENCODED=${{ secrets.GOOGLE_AUTH_ENCODED }} ./reset-db-all.sh
