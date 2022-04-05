@@ -2,7 +2,7 @@ name: 'Update bills image (google-drive)'
 
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "30 5 * * *"
 
   workflow_dispatch:
     branches:
