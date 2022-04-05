@@ -36,7 +36,7 @@ echo "----------------------------------------------"
 echo "#### Import candidates: Congresistas"
 command_file="$(cat << EOF
 load database
-     from https://github.com/openpolitica/jne-elecciones/raw/main/data/plataformaelectoral/2021-candidatos-congresales.db
+     from https://jne-elecciones-1snkg6un0-openpolitica-user.vercel.app/2021-candidatos-congresales.db
      into pgsql://${PGUSER}@${PGHOST}:${PGPORT}/${PGDATABASE}
 
  WITH include drop, create tables, create no indexes, reset sequences
@@ -67,7 +67,7 @@ echo "----------------------------------------------"
 echo "#### Import candidates: Parlamento Andino"
 command_file="$(cat << EOF
 load database
-     from https://github.com/openpolitica/jne-elecciones/raw/main/data/plataformaelectoral/2021-candidatos-parlamento-andino.db
+     from https://jne-elecciones-1snkg6un0-openpolitica-user.vercel.app/2021-candidatos-parlamento-andino.db
      into pgsql://${PGUSER}@${PGHOST}:${PGPORT}/${PGDATABASE}
 
  WITH include no drop, create no tables, create no indexes, reset sequences
