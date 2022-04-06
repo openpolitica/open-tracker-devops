@@ -211,10 +211,6 @@ wrong_slugs=(\
   "arturo-alegria-garcia" \
   "campos-hernando-guerra-garcia" \
   "ernesto-bustamante-donayre" \
-  "freddy-roland-diaz-monago" \
-  "limachi-quispe-nieves-esmeralda" \
-  "maria-jauregui-martinez-de-aguayo" \
-  "vasquez-vela-lucinda" \
   "vivian-olivos-martinez" \
 )
 
@@ -222,10 +218,6 @@ right_slugs=(\
   "luis-arturo-alegria-garcia" \
   "hernando-guerra-garcia-campos" \
   "carlos-ernesto-bustamante-donayre" \
-  "freddy-ronald-diaz-monago" \
-  "nieves-esmeralda-limachi-quispe" \
-  "maria-de-los-milagros-jackeline-jauregui-martinez-de-aguayo" \
-  "lucinda-vasquez-vela" \
   "leslie-vivian-olivos-martinez" \
 )
 
