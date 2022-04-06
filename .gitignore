@@ -2,3 +2,4 @@ backend/.env
 backend/database/*
 database/log/*
 grafana/db/*
+grafana/.env
