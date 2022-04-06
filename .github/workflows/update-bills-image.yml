@@ -25,7 +25,7 @@ jobs:
     - name: Execute script
       run: |
         cd database/
-        GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }} GOOGLE_AUTH_ENCODED=${{ secrets.GOOGLE_AUTH_ENCODED }} ./bills/create-image.sh
+        GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }} GLOSSARY_SHEET_ID=${{ secrets.GLOSSARY_SHEET_ID }} GOOGLE_AUTH_ENCODED=${{ secrets.GOOGLE_AUTH_ENCODED }} ./bills/create-image.sh
 
     - name: Upload generated image
       uses: actions/upload-artifact@v2
