@@ -7,6 +7,8 @@
 # export PGPASSWORD=database_password
 # export OUTSIDE_DOCKER_NETWORK
 
+source utils/check_execution.sh
+source utils/sql.sh
 
 # Includes all working tables
 working_tables=(\
@@ -16,11 +18,9 @@ working_tables=(\
   bill \
 )
 
-SQLCMD="psql -U ${PGUSER} -w  -h ${PGHOST} -c "
-
 # Add safe sql truncate
 # based on https://stackoverflow.com/a/63004824/5107192
-$SQLCMD "
+sqlcmd "
 CREATE OR REPLACE FUNCTION public.truncate_if_exists(_table text, _schema text DEFAULT NULL)
   RETURNS text
   LANGUAGE plpgsql AS
@@ -47,5 +47,5 @@ END
 "
 
 for table_name in ${working_tables[@]}; do
-  $SQLCMD "SELECT truncate_if_exists('$table_name');"
+  sqlcmd "SELECT truncate_if_exists('$table_name');"
 done

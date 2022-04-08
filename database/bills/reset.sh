@@ -7,6 +7,31 @@
 # export PGPASSWORD=database_password
 # export OUTSIDE_DOCKER_NETWORK
 
+source utils/check_execution.sh
+source utils/sql.sh
+
+INIT_DIR=${PWD}
+
+if [[ -z $PROJECT_DIRECTORY ]]; then
+	PROJECT_DIRECTORY=${HOME}/congreso
+fi
+
+DATA_DIRECTORY=${PROJECT_DIRECTORY}/congreso-proyecto-ley
+BILLS_DB_FILENAME=proyectos-ley-2021-2026.db
+BILLS_DB_PATH=${DATA_DIRECTORY}/${BILLS_DB_FILENAME}
+
+if [[ ! -f ${BILLS_DB_PATH}  ]]; then
+  ./bills/prepare.sh
+fi
+
+LOCAL_DB_FOLDER=./bills/db
+mkdir -p ${LOCAL_DB_FOLDER}
+
+LOCAL_BILLS_DB_PATH=${LOCAL_DB_FOLDER}/${BILLS_DB_FILENAME}
+
+# Copy from repository to local directory to be used by pgloader
+echo "Copying dbs from repository to local path"
+cp ${BILLS_DB_PATH} ${LOCAL_BILLS_DB_PATH}
 
 # Includes all working tables
 working_tables=(\
@@ -21,11 +46,8 @@ working_tables=(\
   bill \
 )
 
-SQLCMD="psql -U ${PGUSER} -w  -h ${PGHOST} -c "
-
-
 # Drop foreign keys to avoid locks
-$SQLCMD "
+sqlcmd "
 ALTER TABLE IF EXISTS seguimiento 
 DROP CONSTRAINT IF EXISTS seguimiento_proyecto_ley_id_fkey;
 ALTER TABLE IF EXISTS tracking 
@@ -33,7 +55,7 @@ DROP CONSTRAINT IF EXISTS seguimiento_proyecto_ley_id_fkey;
 "
 
 for table_name in ${working_tables[@]}; do
-  $SQLCMD "DROP TABLE IF EXISTS \"$table_name\" CASCADE;"
+  sqlcmd "DROP TABLE IF EXISTS \"$table_name\" CASCADE;"
 done
 
 
@@ -48,15 +70,16 @@ function update_with_pgloader() {
     echo "Deploy outside docker network"
     docker run --rm --name pgloader --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:ccl.latest pgloader $1
   fi
+  checkPreviousCommand "Execution of docker failed"
 }
 
 # Import Congreso
 # Requires pgloader
 echo "----------------------------------------------"
-echo "#### Import projects"
+echo "#### Import bills"
 command_file="$(cat << EOF
 load database
-     from https://congreso-proyecto-ley-wine.vercel.app/proyectos-ley-2021-2026.db
+     from ${LOCAL_BILLS_DB_PATH}
      into pgsql://${PGUSER}@${PGHOST}:${PGPORT}/${PGDATABASE}
 
  WITH include drop, create tables, create indexes, reset sequences
@@ -78,7 +101,7 @@ rm script
 # Add slugs to facilitate comparison with congressname
 echo "----------------------------------------------"
 echo "#### Add slug to authorship table "
-$SQLCMD "
+sqlcmd "
 ALTER TABLE authorship ADD COLUMN IF NOT EXISTS congressperson_slug text;
 UPDATE authorship SET congressperson_slug =
 slugify(concat(split_part(congressperson::TEXT,',', 2), ' ',
@@ -87,13 +110,13 @@ split_part(congressperson::TEXT,',', 1)));
 
 echo "----------------------------------------------"
 echo "#### Add slugs to tracking table "
-$SQLCMD "
+sqlcmd "
 ALTER TABLE tracking ADD COLUMN IF NOT EXISTS committee_slug text;
 UPDATE tracking SET committee_slug =
 slugify(committee::TEXT);
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE tracking ADD COLUMN IF NOT EXISTS status_slug text;
 UPDATE tracking SET status_slug =
 slugify(status::TEXT);
@@ -101,25 +124,25 @@ slugify(status::TEXT);
 
 echo "----------------------------------------------"
 echo "#### Add slug to bill table "
-$SQLCMD "
+sqlcmd "
 ALTER TABLE bill ADD COLUMN IF NOT EXISTS last_committee_slug text;
 UPDATE bill SET last_committee_slug =
 slugify(last_committee::TEXT);
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE bill ADD COLUMN IF NOT EXISTS legislature_slug text;
 UPDATE bill SET legislature_slug =
 slugify(legislature::TEXT);
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE bill ADD COLUMN IF NOT EXISTS last_status_slug text;
 UPDATE bill SET last_status_slug =
 slugify(last_status::TEXT);
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE bill ADD COLUMN IF NOT EXISTS parliamentary_group_slug text;
 UPDATE bill SET parliamentary_group_slug =
 slugify(parliamentary_group::TEXT);
@@ -144,7 +167,7 @@ right_slugs=(\
 
 j=0
 for slug in ${wrong_slugs[@]}; do
-  $SQLCMD "
+  sqlcmd "
    UPDATE authorship SET congressperson_slug = '${right_slugs[j]}' WHERE
    congressperson_slug = '${wrong_slugs[j]}';"
   ((j++))
@@ -161,7 +184,7 @@ common_slugs=(\
 
 j=0
 for slug in ${non_common_slugs[@]}; do
-  $SQLCMD "
+  sqlcmd "
    UPDATE bill SET parliamentary_group_slug = '${common_slugs[j]}' WHERE
    parliamentary_group_slug = '${non_common_slugs[j]}';"
   ((j++))
@@ -170,7 +193,7 @@ done
 # 3. Add corresponding IDs
 echo "----------------------------------------------"
 echo "#### Add id to authorship table "
-$SQLCMD "
+sqlcmd "
 ALTER TABLE authorship ADD COLUMN IF NOT EXISTS congressperson_id integer;
 UPDATE authorship SET congressperson_id = congressperson.cv_id
 FROM congressperson 
@@ -179,14 +202,14 @@ WHERE authorship.congressperson_slug = congressperson.congressperson_slug;
 
 echo "----------------------------------------------"
 echo "#### Add id to tracking table "
-$SQLCMD "
+sqlcmd "
 ALTER TABLE tracking ADD COLUMN IF NOT EXISTS committee_id uuid;
 UPDATE tracking SET committee_id = committee.committee_id
 FROM committee 
 WHERE tracking.committee_slug = committee.committee_slug;
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE tracking ADD COLUMN IF NOT EXISTS status_id uuid;
 UPDATE tracking SET status_id = bill_status.bill_status_id
 FROM bill_status 
@@ -195,28 +218,28 @@ WHERE tracking.status_slug = bill_status.bill_status_slug;
 
 echo "----------------------------------------------"
 echo "#### Add id to bill table "
-$SQLCMD "
+sqlcmd "
 ALTER TABLE bill ADD COLUMN IF NOT EXISTS last_committee_id UUID;
 UPDATE bill SET last_committee_id = committee.committee_id
 FROM committee 
 WHERE bill.last_committee_slug = committee.committee_slug;
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE bill ADD COLUMN IF NOT EXISTS legislature_id UUID;
 UPDATE bill SET legislature_id = legislature.legislature_id
 FROM legislature 
 WHERE bill.legislature_slug = legislature.legislature_slug;
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE bill ADD COLUMN IF NOT EXISTS last_status_id UUID;
 UPDATE bill SET last_status_id = bill_status.bill_status_id
 FROM bill_status 
 WHERE bill.last_status_slug = bill_status.bill_status_slug;
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE bill ADD COLUMN IF NOT EXISTS parliamentary_group_id UUID;
 UPDATE bill SET parliamentary_group_id =
 parliamentary_group.parliamentary_group_id
@@ -228,7 +251,7 @@ parliamentary_group.parliamentary_group_slug;
 #4. Update datatypes
 echo "----------------------------------------------"
 echo "#### Update datatypes"
-$SQLCMD "
+sqlcmd "
 ALTER TABLE bill ALTER COLUMN presentation_date TYPE date USING
 presentation_date::date;
 ALTER TABLE tracking ALTER COLUMN date TYPE date USING date::date;
@@ -237,7 +260,7 @@ ALTER TABLE tracking ALTER COLUMN date TYPE date USING date::date;
 #5. Add missing indexes and foreign keys
 echo "----------------------------------------------"
 echo "#### Add indexes and foreign keys"
-$SQLCMD "
+sqlcmd "
 ALTER TABLE bill
   ADD CONSTRAINT bill_committee_fk1 FOREIGN KEY (\"last_committee_id\") 
   REFERENCES committee (\"committee_id\") 

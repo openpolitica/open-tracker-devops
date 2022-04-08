@@ -79,5 +79,5 @@ fi
 # If backup is different from current values clean and update with remote
 cd $INIT_DIR
 ./bills/clean-tables.sh
-psql -U ${PGUSER} -w  -h ${PGHOST} -d ${PGDATABASE} < $BACKUP_FILEPATH_REMOTE
+psql -v ON_ERROR_STOP=1 -U ${PGUSER} -w  -h ${PGHOST} -d ${PGDATABASE} < $BACKUP_FILEPATH_REMOTE
 
