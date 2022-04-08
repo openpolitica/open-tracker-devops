@@ -1,5 +1,4 @@
 #!/bin/bash
-
 ####### REQUIRES TO SET ENVIRONMENT VALUES #########
 # export PGDATABASE=database_name
 # export PGHOST=localhost_or_remote_host
@@ -8,27 +7,16 @@
 # export PGPASSWORD=database_password
 # export OUTSIDE_DOCKER_NETWORK
 
-SQLCMD="psql -U ${PGUSER} -w  -h ${PGHOST} -c "
+source utils/check_execution.sh
+source utils/sql.sh
+source utils/pgloader.sh
 
 #https://stackoverflow.com/a/21247009/5107192
-$SQLCMD "
+sqlcmd "
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 GRANT ALL ON SCHEMA public TO public;
 "
-
-function update_with_pgloader() {
-  if [[ -z $OUTSIDE_DOCKER_NETWORK ]]; then
-
-    if [[ -z $DOCKER_NETWORK ]]; then
-      DOCKER_NETWORK=nginx-proxy
-    fi
-    docker run --rm --name pgloader --net $DOCKER_NETWORK --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:ccl.latest pgloader $1
-  else 
-    echo "Deploy outside docker network"
-    docker run --rm --name pgloader --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:ccl.latest pgloader $1
-  fi
-}
 
 # Import Congreso
 # Requires pgloader
@@ -53,7 +41,7 @@ rm script
 # Store in temporary table VicePresidentes that we know are Congresistas
 echo "----------------------------------------------"
 echo "#### Getting the 'Vicepresidentes' that are 'Congresistas' and storing their ID in temporary table"
-$SQLCMD "
+sqlcmd "
 DROP TABLE IF EXISTS \"temp_vp_congreso\";
 CREATE TABLE temp_vp_congreso AS
 SELECT hoja_vida_id
@@ -84,7 +72,7 @@ rm script
 # Store in temporary table VicePresidentes that we know are Parlamento Andino
 echo "----------------------------------------------"
 echo "#### Getting the 'Vicepresidentes' that are 'Parlamento Andino' and storing their ID in temporary table"
-$SQLCMD "
+sqlcmd "
 DROP TABLE IF EXISTS \"temp_vp_pa\";
 CREATE TABLE temp_vp_pa AS
 SELECT hoja_vida_id
@@ -96,7 +84,7 @@ WHERE cargo_nombre LIKE '%VICEPRESIDENTE%' AND hoja_vida_id NOT IN
 # Modify datatypes in candidates
 echo "----------------------------------------------"
 echo "#### Modifying the datatypes in table"
-$SQLCMD '''
+sqlcmd '''
 ALTER TABLE "candidato" ALTER COLUMN hoja_vida_id TYPE int;
 ALTER TABLE "candidato" ALTER COLUMN id_dni TYPE int USING id_dni::integer;
 ALTER TABLE "candidato" ALTER COLUMN id_ce TYPE varchar(1);
@@ -135,7 +123,7 @@ ALTER TABLE "sentencia_penal" ALTER COLUMN hoja_vida_id TYPE int;
 # Change applicable Vicepresidentes to VP+Congresistas
 echo "----------------------------------------------"
 echo "#### Creating new 'cargo_nombre' type that mixes 'Vicepresidente + Congresista' where applicable"
-$SQLCMD "
+sqlcmd "
 ALTER TABLE \"temp_vp_congreso\" ALTER COLUMN hoja_vida_id TYPE int;
 UPDATE candidato
 SET cargo_nombre='PRIMER VICEPRESIDENTE Y CONGRESISTA DE LA REPÚBLICA'
@@ -151,7 +139,7 @@ DROP TABLE IF EXISTS \"temp_vp_congreso\";
 # Change applicable Vicepresidentes to VP+PA
 echo "----------------------------------------------"
 echo "#### Creating new 'cargo_nombre' type that mixes 'Vicepresidente + Parlamento Andino' where applicable"
-$SQLCMD "
+sqlcmd "
 ALTER TABLE \"temp_vp_pa\" ALTER COLUMN hoja_vida_id TYPE int;
 UPDATE candidato
 SET cargo_nombre='PRIMER VICEPRESIDENTE Y REPRESENTANTE ANTE EL PARLAMENTO ANDINO'
@@ -167,7 +155,7 @@ DROP TABLE IF EXISTS \"temp_vp_pa\";
 # Add temp elected table
 echo "----------------------------------------------"
 echo "#### Add temp elected candidate"
-$SQLCMD '''
+sqlcmd '''
 DROP TABLE IF EXISTS "temp_electos";
 CREATE TABLE "temp_electos" (
   "hoja_vida_id" int DEFAULT NULL,
@@ -175,7 +163,7 @@ CREATE TABLE "temp_electos" (
   "partido" text DEFAULT NULL
 );
 '''
-$SQLCMD "\copy \"temp_electos\" (
+sqlcmd "\copy \"temp_electos\" (
   \"hoja_vida_id\",
   \"nombre\",
   \"partido\")
@@ -185,7 +173,7 @@ FROM './congresistas_pa_electos.csv' DELIMITER ',' QUOTE '\"' CSV HEADER;
 #Deleting all not elected
 echo "----------------------------------------------"
 echo "#### Removing no elected"
-$SQLCMD '''
+sqlcmd '''
 DELETE FROM "candidato"
 WHERE "candidato".hoja_vida_id NOT IN (SELECT hoja_vida_id FROM temp_electos);
 DROP TABLE IF EXISTS temp_electos;
@@ -194,7 +182,7 @@ DROP TABLE IF EXISTS temp_electos;
 #Create column with cargo_electo
 echo "----------------------------------------------"
 echo "#### Crear columna con cargos elegidos"
-$SQLCMD "
+sqlcmd "
 ALTER TABLE candidato ADD COLUMN cargo_electo VARCHAR(64);
 UPDATE candidato
 SET cargo_electo='CONGRESISTA DE LA REPÚBLICA'
@@ -207,7 +195,7 @@ WHERE cargo_nombre LIKE '%PARLAMENTO%';
 # Expand cargo_nombre field and remove new duplicates
 echo "----------------------------------------------"
 echo "#### Removing duplicate entries individually"
-$SQLCMD "
+sqlcmd "
 DELETE FROM \"candidato\"
 WHERE expediente_estado LIKE '%IMPROCEDENTE%'
 OR expediente_estado LIKE '%EXCLUSION%'
@@ -215,7 +203,7 @@ OR expediente_estado LIKE '%RENUNCI%'
 OR expediente_estado LIKE '%RETIRO%';
 "
 
-$SQLCMD '''
+sqlcmd '''
 CREATE TABLE temp_educacion AS SELECT DISTINCT * FROM educacion;
 ALTER TABLE educacion RENAME TO junk;
 ALTER TABLE temp_educacion RENAME TO educacion;
@@ -262,7 +250,7 @@ DROP TABLE IF EXISTS temp_sentencia_penal;
 # Create extra_data table
 echo "----------------------------------------------"
 echo "#### Creating new table for storing extra data that comes from other sources"
-$SQLCMD '''
+sqlcmd '''
 DROP TABLE IF EXISTS "extra_data";
 CREATE TABLE IF NOT EXISTS "extra_data" (
   "hoja_vida_id" int DEFAULT NULL,
@@ -287,12 +275,12 @@ CREATE TABLE IF NOT EXISTS "extra_data" (
 echo "----------------------------------------------"
 echo "#### Populating extra_data table"
 ## hoja_vida_id
-$SQLCMD '''
+sqlcmd '''
 INSERT INTO extra_data (hoja_vida_id)
 SELECT hoja_vida_id FROM candidato
 '''
 ## vacancia
-$SQLCMD "
+sqlcmd "
 UPDATE extra_data
 SET vacancia=1
 WHERE hoja_vida_id IN (SELECT hoja_vida_id FROM candidato c WHERE
@@ -317,7 +305,7 @@ OR c.org_politica_nombre LIKE 'UNION POR EL PERU'
 OR c.org_politica_nombre LIKE 'FRENTE POPULAR AGRICOLA FIA DEL PERU - FREPAP');
 "
 ## Experiencia pública y privada
-$SQLCMD '''
+sqlcmd '''
 DROP TABLE IF EXISTS "temp_experiencia";
 CREATE TABLE "temp_experiencia" (
   "hoja_vida_id" int DEFAULT NULL,
@@ -325,7 +313,7 @@ CREATE TABLE "temp_experiencia" (
   "experiencia_privada" smallint DEFAULT NULL
 );
 '''
-$SQLCMD "\copy \"temp_experiencia\" (
+sqlcmd "\copy \"temp_experiencia\" (
 \"hoja_vida_id\", 
 \"experiencia_privada\",
 \"experiencia_publica\")
@@ -347,7 +335,7 @@ DROP TABLE IF EXISTS \"temp_experiencia\";
 
 
 ## Educación mayor nivel
-$SQLCMD "
+sqlcmd "
 UPDATE extra_data
 SET educacion_mayor_nivel='Primaria', educacion_primaria=1
 WHERE hoja_vida_id IN (SELECT hoja_vida_id FROM educacion e 
@@ -380,7 +368,7 @@ WHERE educacion_mayor_nivel IS NULL;
 # New sentencias_ec table and populate extra_data
 echo "----------------------------------------------"
 echo "#### Creating new table 'sentencias_ec' for data coming from EC source"
-$SQLCMD '''
+sqlcmd '''
 DROP TABLE IF EXISTS "sentencias_ec";
 CREATE TABLE "sentencias_ec" (
   "hoja_vida_id" int DEFAULT NULL,
@@ -390,7 +378,7 @@ CREATE TABLE "sentencias_ec" (
   "fallo" varchar(96) DEFAULT NULL
 );
 '''
-$SQLCMD "\copy \"sentencias_ec\" (
+sqlcmd "\copy \"sentencias_ec\" (
   \"hoja_vida_id\",
   \"delito\",
   \"procesos\",
@@ -415,7 +403,7 @@ WHERE \"sentencias_ec\".hoja_vida_id NOT IN (SELECT hoja_vida_id FROM candidato)
 # Update 'bienes' total values in extra_data
 echo "----------------------------------------------"
 echo "#### Populating 'bienes' total value in extra_data"
-$SQLCMD '''
+sqlcmd '''
 UPDATE extra_data e 
 SET bienes_inmuebles_valor = b.valor FROM (SELECT hoja_vida_id, CAST(SUM(auto_valuo) as numeric(12,2)) as valor
 FROM bien_inmueble
@@ -431,7 +419,7 @@ WHERE e.hoja_vida_id = b.hoja_vida_id;
 # New data_ec table and populate
 echo "----------------------------------------------"
 echo "#### Creating new table 'data_ec' for data coming from EC-TD source"
-$SQLCMD '''
+sqlcmd '''
 DROP TABLE IF EXISTS "data_ec";
 CREATE TABLE "data_ec" (
   "hoja_vida_id" int DEFAULT NULL,
@@ -449,7 +437,7 @@ CREATE TABLE "data_ec" (
   "sancion_servir_institucion" varchar(256) DEFAULT NULL
 );
 '''
-$SQLCMD "\copy \"data_ec\" (
+sqlcmd "\copy \"data_ec\" (
   \"hoja_vida_id\",
   \"designado\",
   \"inmuebles_total\",
@@ -520,7 +508,7 @@ WHERE sancion_servir_institucion IS NULL OR CHAR_LENGTH(sancion_servir_instituci
 # New location table and populate
 echo "----------------------------------------------"
 echo "#### Creating new table 'location' for seats & geographical coordinates"
-$SQLCMD '''
+sqlcmd '''
 DROP TABLE IF EXISTS "location";
 CREATE TABLE "location" (
   "ubigeo" int PRIMARY KEY,
@@ -531,7 +519,7 @@ CREATE TABLE "location" (
   "count_seats" smallint DEFAULT NULL
 );
 '''
-$SQLCMD "\copy \"location\" (
+sqlcmd "\copy \"location\" (
   \"ubigeo\",
   \"location_name\",
   \"lat\",
@@ -542,7 +530,7 @@ FROM './location.csv' DELIMITER ',' QUOTE '\"' CSV HEADER;
 
 echo "----------------------------------------------"
 echo "#### Count congress for electoral_district"
-$SQLCMD '''
+sqlcmd '''
 UPDATE location SET count_seats = grouped_by_ubigeo.count_candidato 
 FROM (SELECT postula_ubigeo, count(hoja_vida_id) as count_candidato FROM candidato GROUP BY
 postula_ubigeo) as grouped_by_ubigeo
@@ -553,7 +541,7 @@ WHERE location.ubigeo = grouped_by_ubigeo.postula_ubigeo;
 # New dirty lists table and populate
 echo "----------------------------------------------"
 echo "#### Creating new dirty_lists table for parties with sanctions"
-$SQLCMD "
+sqlcmd "
 CREATE table dirty_lists
 AS
 SELECT
@@ -605,7 +593,7 @@ group by postula_distrito, org_politica_nombre
 # Delete useless data
 echo "----------------------------------------------"
 echo "#### Delete data from tables that does not belong to any candidate"
-$SQLCMD '''
+sqlcmd '''
 DELETE FROM "ingreso"
 WHERE "ingreso".hoja_vida_id NOT IN (SELECT hoja_vida_id FROM candidato);
 DELETE FROM "experiencia"
@@ -631,7 +619,7 @@ WHERE "sentencias_ec".hoja_vida_id NOT IN (SELECT hoja_vida_id FROM candidato);
 # Update data for special cases
 echo "----------------------------------------------"
 echo "#### Updating candidates special information"
-$SQLCMD "
+sqlcmd "
 UPDATE candidato
 SET id_nombres = 'GAHELA TSENEG', id_sexo = 'F'
 WHERE hoja_vida_id = 136670
@@ -678,7 +666,7 @@ rm script
 # Modify datatypes in afiliacion
 echo "----------------------------------------------"
 echo "#### Modifying the datatypes in table"
-$SQLCMD '''
+sqlcmd '''
 ALTER TABLE "afiliacion" ALTER COLUMN dni TYPE int USING dni::integer;
 ALTER TABLE "afiliacion" ALTER COLUMN org_politica TYPE varchar(75);
 ALTER TABLE "afiliacion" ALTER COLUMN afiliacion_inicio TYPE varchar(10);
@@ -689,7 +677,7 @@ ALTER TABLE "proceso_electoral" ALTER COLUMN dni TYPE int USING dni::integer;
 # Militancy: Remove duplicates and useless
 echo "----------------------------------------------"
 echo "#### Militancy: removing duplicate entries individually"
-$SQLCMD '''
+sqlcmd '''
 CREATE TABLE temp_afiliacion AS SELECT DISTINCT * FROM afiliacion;
 ALTER TABLE afiliacion RENAME TO junk;
 ALTER TABLE temp_afiliacion RENAME TO afiliacion;
@@ -704,14 +692,14 @@ WHERE "proceso_electoral".dni NOT IN (SELECT id_dni FROM candidato);
 # Update column name from cargo_nombre to cargo_postulacion
 echo "----------------------------------------------"
 echo "#### Update from cargo_nombre to cargo_postulacion"
-$SQLCMD '''
+sqlcmd '''
 ALTER TABLE candidato RENAME COLUMN cargo_nombre TO cargo_postulacion;
 '''
 
 # Create definite indexes and relations!
 echo "----------------------------------------------"
 echo "#### Creating indexes and relations betweeen tables"
-$SQLCMD '''
+sqlcmd '''
 CREATE INDEX on candidato(hoja_vida_id, postula_distrito, cargo_postulacion, org_politica_nombre, org_politica_id, id_sexo, expediente_estado, id_dni, cargo_electo);
 ALTER TABLE candidato ADD PRIMARY KEY(id_dni);
 ALTER TABLE candidato ADD CONSTRAINT unique_candidate UNIQUE ("hoja_vida_id");
@@ -784,6 +772,6 @@ CREATE INDEX ON proceso_electoral(dni, cargo, proceso_electoral);
 # Update table name from candidate to congresista
 echo "----------------------------------------------"
 echo "#### Update from candidate to congresista"
-$SQLCMD '''
+sqlcmd '''
 ALTER TABLE candidato RENAME TO congresista;
 '''

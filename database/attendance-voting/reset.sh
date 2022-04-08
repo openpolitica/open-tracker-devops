@@ -7,6 +7,10 @@
 # export PGPASSWORD=database_password
 # export OUTSIDE_DOCKER_NETWORK
 
+source utils/check_execution.sh
+source utils/sql.sh
+source utils/pgloader.sh
+
 INIT_DIR=${PWD}
 
 if [[ -z $PROJECT_DIRECTORY ]]; then
@@ -58,11 +62,8 @@ working_tables=(\
   attendance_parliamentary_group_metrics \
 )
 
-SQLCMD="psql -U ${PGUSER} -w  -h ${PGHOST} -c "
-
-
 # Drop foreign keys to avoid locks
-#$SQLCMD "
+#sqlcmd "
 #ALTER TABLE IF EXISTS seguimiento 
 #DROP CONSTRAINT IF EXISTS seguimiento_proyecto_ley_id_fkey;
 #ALTER TABLE IF EXISTS tracking 
@@ -70,22 +71,8 @@ SQLCMD="psql -U ${PGUSER} -w  -h ${PGHOST} -c "
 #"
 
 for table_name in ${working_tables[@]}; do
-  $SQLCMD "DROP TABLE IF EXISTS \"$table_name\" CASCADE;"
+  sqlcmd "DROP TABLE IF EXISTS \"$table_name\" CASCADE;"
 done
-
-
-function update_with_pgloader() {
-  if [[ -z $OUTSIDE_DOCKER_NETWORK ]]; then
-
-    if [[ -z $DOCKER_NETWORK ]]; then
-      DOCKER_NETWORK=nginx-proxy
-    fi
-    docker run --rm --name pgloader --net $DOCKER_NETWORK --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:ccl.latest pgloader $1
-  else 
-    echo "Deploy outside docker network"
-    docker run --rm --name pgloader --env PGPASSWORD=$PGPASSWORD -v "$PWD":/home -w /home dimitri/pgloader:ccl.latest pgloader $1
-  fi
-}
 
 # Import Plenary days
 # Requires pgloader
@@ -138,7 +125,7 @@ rm script
 # Add slugs to facilitate comparison with legislature
 echo "----------------------------------------------"
 echo "#### Add slug to plenary_session table "
-$SQLCMD "
+sqlcmd "
 ALTER TABLE plenary_session ADD COLUMN IF NOT EXISTS legislature_slug text;
 UPDATE plenary_session SET legislature_slug =
 slugify(legislature::TEXT);
@@ -146,7 +133,7 @@ slugify(legislature::TEXT);
 
 echo "----------------------------------------------"
 echo "#### Add slug to attendance_congressperson table "
-$SQLCMD "
+sqlcmd "
 ALTER TABLE attendance_congressperson ADD COLUMN IF NOT EXISTS congressperson_slug text;
 UPDATE attendance_congressperson SET congressperson_slug =
 slugify(concat(split_part(congressperson::TEXT,',', 2), ' ',
@@ -155,7 +142,7 @@ split_part(congressperson::TEXT,',', 1)));
 
 echo "----------------------------------------------"
 echo "#### Add slug to voting_congressperson table "
-$SQLCMD "
+sqlcmd "
 ALTER TABLE voting_congressperson ADD COLUMN IF NOT EXISTS congressperson_slug text;
 UPDATE voting_congressperson SET congressperson_slug =
 slugify(concat(split_part(congressperson::TEXT,',', 2), ' ',
@@ -166,7 +153,7 @@ split_part(congressperson::TEXT,',', 1)));
 
 echo "----------------------------------------------"
 echo "#### Create attendance in session table "
-$SQLCMD "
+sqlcmd "
 DROP TABLE IF EXISTS \"attendance_in_session\";
 CREATE TABLE attendance_in_session AS
 SELECT DISTINCT parliamentary_period, annual_period, 
@@ -177,7 +164,7 @@ FROM attendance_result;
 
 echo "----------------------------------------------"
 echo "#### Create voting in session table "
-$SQLCMD "
+sqlcmd "
 DROP TABLE IF EXISTS \"voting_in_session\";
 CREATE TABLE voting_in_session AS
 SELECT DISTINCT parliamentary_period, annual_period, 
@@ -189,7 +176,7 @@ FROM voting_result;
 # attendance_in_session tables
 # requires the function created in add_uuids.sh script
 
-$SQLCMD "
+sqlcmd "
 SELECT add_uuid('plenary_session');
 SELECT add_uuid('attendance_in_session');
 SELECT add_uuid('voting_in_session');
@@ -223,10 +210,10 @@ right_slugs=(\
 
 j=0
 for slug in ${wrong_slugs[@]}; do
-  $SQLCMD "
+  sqlcmd "
    UPDATE attendance_congressperson SET congressperson_slug = '${right_slugs[j]}' WHERE
    congressperson_slug = '${wrong_slugs[j]}';"
-  $SQLCMD "
+  sqlcmd "
    UPDATE voting_congressperson SET congressperson_slug = '${right_slugs[j]}' WHERE
    congressperson_slug = '${wrong_slugs[j]}';"
   ((j++))
@@ -247,11 +234,11 @@ right_codes=(\
 
 j=0
 for slug in ${wrong_codes[@]}; do
-  $SQLCMD "
+  sqlcmd "
    UPDATE attendance_parliamentary_group SET parliamentary_group =
    '${right_codes[j]}' WHERE
    parliamentary_group = '${wrong_codes[j]}';"
-  $SQLCMD "
+  sqlcmd "
    UPDATE voting_parliamentary_group SET parliamentary_group =
    '${right_codes[j]}' WHERE
    parliamentary_group = '${wrong_codes[j]}';"
@@ -263,7 +250,7 @@ echo "----------------------------------------------"
 echo "#### Add legislature_id to plenary_session table "
 SELECTED_PARLIAMENTARY_PERIOD="Congreso de la República - Periodo Parlamentario 2021 - 2026"
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE plenary_session ADD COLUMN IF NOT EXISTS legislature_id uuid;
 UPDATE plenary_session SET legislature_id = legislature.legislature_id
 FROM legislature 
@@ -273,7 +260,7 @@ AND plenary_session.legislature_slug = RTRIM(legislature.legislature_slug,
 "
 
 # Create function to relate by date
-$SQLCMD "
+sqlcmd "
 DROP FUNCTION IF EXISTS relate_by_date(text, text);
 CREATE OR REPLACE FUNCTION relate_by_date(target_table text, reference_table text)
 RETURNS void as \$\$
@@ -294,20 +281,20 @@ END;
 "
 echo "----------------------------------------------"
 echo "#### Add plenary_session_id to attendance_in_session table "
-$SQLCMD "
+sqlcmd "
 SELECT relate_by_date('attendance_in_session', 'plenary_session');
 "
 
 echo "----------------------------------------------"
 echo "#### Add plenary_session_id to voting_in_session table "
-$SQLCMD "
+sqlcmd "
 SELECT relate_by_date('voting_in_session', 'plenary_session');
 "
 
 echo "----------------------------------------------"
 echo "#### Add voting and attendance id to related tables table "
 # Create function to relate by date and time
-$SQLCMD "
+sqlcmd "
 DROP FUNCTION IF EXISTS relate_by_date_and_time(text, text);
 CREATE OR REPLACE FUNCTION relate_by_date_and_time(target_table text, reference_table text)
 RETURNS void as \$\$
@@ -328,13 +315,13 @@ END;
 \$\$ LANGUAGE plpgsql;
 "
 
-$SQLCMD "
+sqlcmd "
 SELECT relate_by_date_and_time('attendance_result', 'attendance_in_session');
 SELECT relate_by_date_and_time('attendance_congressperson', 'attendance_in_session');
 SELECT relate_by_date_and_time('attendance_parliamentary_group', 'attendance_in_session');
 "
 
-$SQLCMD "
+sqlcmd "
 SELECT relate_by_date_and_time('voting_result', 'voting_in_session');
 SELECT relate_by_date_and_time('voting_congressperson', 'voting_in_session');
 SELECT relate_by_date_and_time('voting_parliamentary_group', 'voting_in_session');
@@ -343,7 +330,7 @@ SELECT relate_by_date_and_time('voting_parliamentary_group', 'voting_in_session'
 
 echo "----------------------------------------------"
 echo "#### Add congressperson_id to attendance and voting tables "
-$SQLCMD "
+sqlcmd "
 ALTER TABLE attendance_congressperson ADD COLUMN IF NOT EXISTS
 congressperson_id integer;
 UPDATE attendance_congressperson SET congressperson_id = congressperson.cv_id
@@ -352,7 +339,7 @@ WHERE congressperson.congressperson_slug =
 attendance_congressperson.congressperson_slug;
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE voting_congressperson ADD COLUMN IF NOT EXISTS
 congressperson_id integer;
 UPDATE voting_congressperson SET congressperson_id = congressperson.cv_id
@@ -363,7 +350,7 @@ voting_congressperson.congressperson_slug;
 
 echo "----------------------------------------------"
 echo "#### Add parliamentary_group_id to attendance and voting tables "
-$SQLCMD "
+sqlcmd "
 ALTER TABLE attendance_parliamentary_group ADD COLUMN IF NOT EXISTS
 parliamentary_group_id uuid;
 UPDATE attendance_parliamentary_group SET parliamentary_group_id =
@@ -373,7 +360,7 @@ WHERE parliamentary_group.parliamentary_group_code =
 attendance_parliamentary_group.parliamentary_group;
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE voting_parliamentary_group ADD COLUMN IF NOT EXISTS
 parliamentary_group_id uuid;
 UPDATE voting_parliamentary_group SET parliamentary_group_id =
@@ -387,7 +374,7 @@ voting_parliamentary_group.parliamentary_group;
 # Change datatypes to plenary
 echo "----------------------------------------------"
 echo "#### Change datatypes"
-$SQLCMD "
+sqlcmd "
 ALTER TABLE plenary_session ALTER COLUMN date TYPE date using date::date;
 ALTER TABLE voting_in_session ALTER COLUMN date TYPE date using date::date;
 ALTER TABLE attendance_in_session ALTER COLUMN date TYPE date using date::date;
@@ -398,14 +385,14 @@ ALTER TABLE attendance_in_session ALTER COLUMN time TYPE time using time::time;
 #5. Add missing indexes and foreign keys
 echo "----------------------------------------------"
 echo "#### Add indexes and foreign keys"
-$SQLCMD "
+sqlcmd "
 ALTER TABLE plenary_session
   ADD CONSTRAINT plenary_session_legislature_fk1 FOREIGN KEY (\"legislature_id\") 
   REFERENCES legislature (\"legislature_id\") 
   ON DELETE NO ACTION ON UPDATE NO ACTION;  
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE attendance_congressperson
   ADD CONSTRAINT attendance_congressperson_congressperson_fk1 
   FOREIGN KEY (\"congressperson_id\") 
@@ -413,7 +400,7 @@ ALTER TABLE attendance_congressperson
   ON DELETE NO ACTION ON UPDATE NO ACTION;  
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE voting_congressperson
   ADD CONSTRAINT voting_congressperson_congressperson_fk1 
   FOREIGN KEY (\"congressperson_id\") 
@@ -421,7 +408,7 @@ ALTER TABLE voting_congressperson
   ON DELETE NO ACTION ON UPDATE NO ACTION;  
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE attendance_parliamentary_group
   ADD CONSTRAINT attendance_parliamentary_group_parliamentary_group_fk1 
   FOREIGN KEY (\"parliamentary_group_id\") 
@@ -429,7 +416,7 @@ ALTER TABLE attendance_parliamentary_group
   ON DELETE NO ACTION ON UPDATE NO ACTION;  
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE voting_parliamentary_group
   ADD CONSTRAINT voting_parliamentary_group_parliamentary_group_fk1 
   FOREIGN KEY (\"parliamentary_group_id\") 
@@ -447,7 +434,7 @@ ALTER TABLE voting_parliamentary_group
 # 5. Obtain metrics for congressperson
 echo "----------------------------------------------"
 echo "#### Create metrics for congressperson"
-$SQLCMD "
+sqlcmd "
 DROP TABLE IF EXISTS attendance_congressperson_metrics;
 CREATE TABLE attendance_congressperson_metrics AS
 SELECT agg.*,
@@ -473,7 +460,7 @@ sum(case result when 'F' then 1 else 0 end) as dead
 FROM attendance_congressperson GROUP BY congressperson_id) summary) agg;
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE attendance_congressperson_metrics
   ADD CONSTRAINT attendance_congressperson_metrics_congressperson_fk1 
   FOREIGN KEY (\"congressperson_id\") 
@@ -483,7 +470,7 @@ ALTER TABLE attendance_congressperson_metrics
 
 echo "----------------------------------------------"
 echo "#### Create metrics for parliamentary_group"
-$SQLCMD "
+sqlcmd "
 ALTER TABLE attendance_parliamentary_group
   ADD COLUMN IF NOT EXISTS present_percentage float8;
 UPDATE attendance_parliamentary_group SET present_percentage =
@@ -506,7 +493,7 @@ UPDATE attendance_parliamentary_group SET other_percentage =
 CASE WHEN total!=0 THEN (other::float8 / total::float8)*100.0 ELSE 0.0 END;
 "
 
-$SQLCMD "
+sqlcmd "
 DROP TABLE IF EXISTS attendance_parliamentary_group_metrics;
 CREATE TABLE attendance_parliamentary_group_metrics AS
 SELECT attendance_parliamentary_group.parliamentary_group_id, 
@@ -520,7 +507,7 @@ WHERE attendance_parliamentary_group.total != 0
 GROUP BY parliamentary_group_id;
 "
 
-$SQLCMD "
+sqlcmd "
 ALTER TABLE attendance_parliamentary_group_metrics
   ADD CONSTRAINT attendance_parliamentary_group_metrics_parliamentary_group_fk1 
   FOREIGN KEY (\"parliamentary_group_id\") 
