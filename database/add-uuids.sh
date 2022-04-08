@@ -7,9 +7,10 @@
 # export PGUSER=database_user
 # export PGPASSWORD=database_password
 
-SQLCMD="psql -U ${PGUSER} -w  -h ${PGHOST} -c "
+source utils/check_execution.sh
+source utils/sql.sh
 
-$SQLCMD "
+sqlcmd "
 CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";
 
 DROP FUNCTION IF EXISTS add_uuid(text);
@@ -33,7 +34,7 @@ END;
 \$\$ LANGUAGE plpgsql;
 "
 
-$SQLCMD "
+sqlcmd "
 SELECT add_uuid('affiliation');
 SELECT add_uuid('education');
 SELECT add_uuid('electoral_process');

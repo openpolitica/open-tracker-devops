@@ -7,12 +7,13 @@
 # export PGUSER=database_user
 # export PGPASSWORD=database_password
 
+source utils/check_execution.sh
+source utils/sql.sh
+
 SUFFIX_TABLE="counter"
 SUFFIX_COLUMN="counts"
 
-SQLCMD="psql -U ${PGUSER} -w  -h ${PGHOST} -c "
-
-$SQLCMD "
+sqlcmd "
 DROP FUNCTION IF EXISTS create_counter_table(text, text, text);
 CREATE OR REPLACE FUNCTION create_counter_table(tablename text, idcolumn text,
   slugcolumn text)
@@ -39,7 +40,7 @@ END;
 \$\$ LANGUAGE plpgsql;
 "
 
-$SQLCMD "
+sqlcmd "
 SELECT create_counter_table('congressperson','cv_id','congressperson_slug');
 SELECT create_counter_table('parliamentary_group',
     'parliamentary_group_id','parliamentary_group_slug');

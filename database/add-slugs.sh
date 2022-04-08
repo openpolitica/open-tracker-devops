@@ -10,9 +10,10 @@
 # https://www.kdobson.net/2019/ultimate-postgresql-slug-function/
 # https://medium.com/broadlume-product/using-postgresql-to-generate-slugs-5ec9dd759e88
 
-SQLCMD="psql -U ${PGUSER} -w  -h ${PGHOST} -c "
+source utils/check_execution.sh
+source utils/sql.sh
 
-$SQLCMD "
+sqlcmd "
 CREATE EXTENSION IF NOT EXISTS \"unaccent\";
 
 CREATE OR REPLACE FUNCTION slugify(\"value\" TEXT)
@@ -47,7 +48,7 @@ RETURNS TEXT AS \$\$
 
 echo "----------------------------------------------"
 echo "#### Add slug to congressperson table "
-$SQLCMD "
+sqlcmd "
 ALTER TABLE congressperson ADD COLUMN IF NOT EXISTS congressperson_slug text;
 UPDATE congressperson SET congressperson_slug =
 slugify(concat(congressperson.id_name, ' ',
@@ -58,7 +59,7 @@ congressperson_slug);
 
 echo "----------------------------------------------"
 echo "#### Add slug to location table "
-$SQLCMD "
+sqlcmd "
 ALTER TABLE location ADD COLUMN IF NOT EXISTS location_slug text;
 UPDATE location SET location_slug =
 slugify(location.location_name);
