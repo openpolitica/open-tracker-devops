@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source utils/check_execution.sh
+
 #Init directory 
 INIT_DIR=${PWD}
 
@@ -15,6 +17,7 @@ BACKUP_FILE=$BACKUP_FOLDER/$BACKUP_NAME
 if [[ ! -f $BACKUP_FILE ]]; then
   echo "Backup file not found, creating it..."
   ./attendance-voting/create-image.sh
+  checkPreviousCommand "Image creation failed. Skipping."
   echo "Backup created"
 fi
 

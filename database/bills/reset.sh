@@ -23,6 +23,7 @@ BILLS_DB_PATH=${DATA_DIRECTORY}/${BILLS_DB_FILENAME}
 
 if [[ ! -f ${BILLS_DB_PATH}  ]]; then
   ./bills/prepare.sh
+  checkPreviousCommand "Preparing database failed. Exiting."
 fi
 
 LOCAL_DB_FOLDER=./bills/db

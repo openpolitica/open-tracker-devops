@@ -1,4 +1,7 @@
 #!/bin/bash
+
+source utils/check_execution.sh
+
 #Init directory 
 INIT_DIR=${PWD}
 
@@ -50,6 +53,7 @@ function dump_command() {
       -w /home \
       postgres pg_dump "$@"
   fi
+  checkPreviousCommand "Dump function has failed."
 }
 
 #Create dump from local database
@@ -66,6 +70,7 @@ fi
 cd $DRIVE_SYNC_FOLDER
 npm ci --only=production
 npm run download  -- --type=bills --dest-path=$BACKUP_FILEPATH_REMOTE
+checkPreviousCommand "Downloading bills backup failed. Exiting."
 
 # Compare local with remote
 # Sort to skip moved lines (requires bash)
@@ -79,5 +84,8 @@ fi
 # If backup is different from current values clean and update with remote
 cd $INIT_DIR
 ./bills/clean-tables.sh
+checkPreviousCommand "Cleaning tables has failed. Exiting"
+
 psql -v ON_ERROR_STOP=1 -U ${PGUSER} -w  -h ${PGHOST} -d ${PGDATABASE} < $BACKUP_FILEPATH_REMOTE
 
+checkPreviousCommand "Updating tables failed. Exiting."

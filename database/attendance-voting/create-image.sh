@@ -1,4 +1,7 @@
 #!/bin/bash
+
+source utils/check_execution.sh
+
 #Init directory 
 INIT_DIR=${PWD}
 
@@ -42,6 +45,7 @@ export PGUSER=$TMP_POSTGRES_USER
 export PGPASSWORD=$TMP_POSTGRES_PASSWORD
 
 ./reset-db-all.sh
+checkPreviousCommand "Reset script was unsucessfull. Exiting."
 
 #Dump database into a file
 BACKUP_FOLDER=${INIT_DIR}/backup

@@ -25,6 +25,7 @@ ATTENDANCE_DB_PATH=${DATA_DIRECTORY}/${ATTENDANCE_DB_FILENAME}
 
 if [[ ! -f ${PLENARY_DB_PATH}  || ! -f ${ATTENDANCE_DB_PATH} ]]; then
   ./attendance-voting/prepare.sh
+  checkPreviousCommand "Preparing database failed. Exiting."
 fi
 
 LOCAL_DB_FOLDER=./attendance-voting/db
