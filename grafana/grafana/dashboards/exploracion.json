@@ -26,11 +26,28 @@
   "liveNow": false,
   "panels": [
     {
+      "description": "",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 18,
+      "options": {
+        "content": "# Fuente de datos\n\nLa información presentada en este panel ha sido generada a partir de\nlos datos obtenidos de las Actas de asistencia y votaciones subidas a \nla plataforma del congreso.\n\nEn un esfuerzo conjunto realizado por la Asociación \nCivil Transparencia (ACT) y el equipo de Open Política, \nse ha logrado digitalizar dichas actas hasta la\nfecha los cuales se encuentran en un repositorio abierto en \n[GitHub](https://github.com/openpolitica/congreso-pleno-asistencia-votacion).\n\nLos datos son de libre acceso, no obstante, por favor, \nno olvidar de agregar los créditos a ACT y Open Politica.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "8.3.3",
+      "title": "Información",
+      "type": "text"
+    },
+    {
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 7
       },
       "id": 11,
       "title": "Asistencias",
@@ -75,7 +92,7 @@
         "h": 9,
         "w": 16,
         "x": 0,
-        "y": 1
+        "y": 8
       },
       "id": 14,
       "options": {
@@ -117,7 +134,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 17
       },
       "id": 9,
       "panels": [],
@@ -161,7 +178,7 @@
         "h": 10,
         "w": 16,
         "x": 0,
-        "y": 11
+        "y": 18
       },
       "id": 7,
       "options": {
@@ -244,7 +261,7 @@
         "h": 10,
         "w": 8,
         "x": 16,
-        "y": 11
+        "y": 18
       },
       "id": 2,
       "options": {
@@ -289,7 +306,9 @@
   ],
   "schemaVersion": 34,
   "style": "dark",
-  "tags": [],
+  "tags": [
+    "data-lab"
+  ],
   "templating": {
     "list": []
   },
@@ -297,10 +316,12 @@
     "from": "2022-02-02T19:06:03.073Z",
     "to": "2022-02-02T19:16:03.073Z"
   },
-  "timepicker": {},
+  "timepicker": {
+    "hidden": true
+  },
   "timezone": "",
   "title": "Exploración - Asistencias y Votaciones - Plenos 2021-2026",
   "uid": "23_rPc87z",
-  "version": 1,
+  "version": 6,
   "weekStart": ""
 }
