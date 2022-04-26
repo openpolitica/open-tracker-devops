@@ -13,6 +13,7 @@ const {
 const { setSpreadSheetId, setAuthKeyFile } = require("./gsheet");
 const packageJson = require("./package.json");
 const config = require("./config");
+const err = require("./error");
 const fs = require("fs");
 
 const program = new Commander.Command(packageJson.name)
@@ -94,16 +95,13 @@ async function run() {
   }
 
   //Check if key file exists
-  try {
-    if (!fs.existsSync(keyFile)) {
-      logger.error(
-        "Auth file %s doesn't exist in directory",
-        config.google.keyFile
-      );
-      return;
-    }
-  } catch (err) {
-    console.error(err);
+  //Check if key file exists
+  if (!fs.existsSync(keyFile)) {
+    logger.error(
+      "Auth file %s doesn't exist in directory",
+      config.google.keyFile
+    );
+    throw new err.OptionError("Not auth file found.");
   }
 
   if (options.sheetId) {
@@ -112,7 +110,7 @@ async function run() {
     logger.error(
       "Spreadsheet ID is required, not provided either by an option or environamental variable."
     );
-    return;
+    throw new err.OptionError("Not spreadsheet ID specified");
   }
 
   if (options.table) {
@@ -141,8 +139,8 @@ async function run() {
 
 run().catch(async (reason) => {
   logger.error("Aborting execution.");
-  if (reason.command) {
-    logger.error(`${reason.command} has failed.`);
+  if (reason.name) {
+    logger.error(`${reason.name}: ${reason.message}`);
   } else {
     logger.error("Unexpected error. Please report it as a bug:");
     logger.error("%O", reason);
