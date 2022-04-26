@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source utils/check_execution.sh
+source utils/sql.sh
 
 #Init directory 
 INIT_DIR=${PWD}
@@ -27,37 +28,10 @@ BACKUP_NAME_REMOTE=backup_bills_remote.sql
 BACKUP_FILEPATH_LOCAL=${BACKUP_FOLDER}/${BACKUP_NAME_LOCAL}
 BACKUP_FILEPATH_REMOTE=${BACKUP_FOLDER}/${BACKUP_NAME_REMOTE}
 
-function dump_command() {
-  if [[ -z $OUTSIDE_DOCKER_NETWORK ]]; then
-
-    if [[ -z $DOCKER_NETWORK ]]; then
-      DOCKER_NETWORK=nginx-proxy
-    fi
-    docker run --rm --name pgclient \
-      --net $DOCKER_NETWORK \
-      --env PGPASSWORD=$PGPASSWORD \
-      --env PGUSER=$PGUSER \
-      --env PGHOST=$PGHOST \
-      --env PGDATABASE=$PGDATABASE \
-      -v "$PWD":/home \
-      -w /home \
-      postgres pg_dump "$@"
-  else 
-    echo "Deploy outside docker network"
-    docker run --rm --name pgclient \
-      --env PGPASSWORD=$PGPASSWORD \
-      --env PGUSER=$PGUSER \
-      --env PGHOST=$PGHOST \
-      --env PGDATABASE=$PGDATABASE \
-      -v "$PWD":/home \
-      -w /home \
-      postgres pg_dump "$@"
-  fi
-  checkPreviousCommand "Dump function has failed."
-}
 
 #Create dump from local database
 echo "Creating dump for local database"
+USE_DOCKER_CLIENT=1 
 dump_command --data-only --table="(bill|tracking|grouped_initiative|authorship)" > $BACKUP_FILEPATH_LOCAL
 
 #Get backup file from Google drive
@@ -86,6 +60,6 @@ cd $INIT_DIR
 ./bills/clean-tables.sh
 checkPreviousCommand "Cleaning tables has failed. Exiting"
 
-psql -v ON_ERROR_STOP=1 -U ${PGUSER} -w  -h ${PGHOST} -d ${PGDATABASE} < $BACKUP_FILEPATH_REMOTE
+restore_db $BACKUP_FILEPATH_REMOTE
 
 checkPreviousCommand "Updating tables failed. Exiting."

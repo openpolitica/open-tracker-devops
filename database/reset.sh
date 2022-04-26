@@ -11,12 +11,7 @@ source utils/check_execution.sh
 source utils/sql.sh
 source utils/pgloader.sh
 
-#https://stackoverflow.com/a/21247009/5107192
-sqlcmd "
-DROP SCHEMA public CASCADE;
-CREATE SCHEMA public;
-GRANT ALL ON SCHEMA public TO public;
-"
+clean_db
 
 # Import Congreso
 # Requires pgloader
