@@ -10,6 +10,7 @@
 source utils/check_execution.sh
 source utils/sql.sh
 source utils/pgloader.sh
+source utils/check_db.sh
 
 INIT_DIR=${PWD}
 
@@ -84,6 +85,20 @@ rm script
 
 ./rename-columns.sh
 
+# 0. Explode grouped committees in committee 
+echo "----------------------------------------------"
+echo "#### Explode tracking table "
+sqlcmd "
+DROP TABLE IF EXISTS tmp_tracking;
+CREATE TABLE tmp_tracking AS 
+SELECT *, UNNEST(string_to_array(t.committee ::text,';')) as committee_deployed from tracking t;
+UPDATE tmp_tracking SET committee = committee_deployed;
+ALTER TABLE tmp_tracking DROP committee_deployed;
+INSERT INTO tmp_tracking SELECT * FROM tracking WHERE committee is null;
+DROP TABLE tracking;
+ALTER TABLE tmp_tracking RENAME TO tracking;
+"
+
 # 1. Add slugs to tables
 # Add slugs to facilitate comparison with congressname
 echo "----------------------------------------------"
@@ -131,6 +146,8 @@ slugify(last_status::TEXT);
 
 sqlcmd "
 ALTER TABLE bill ADD COLUMN IF NOT EXISTS parliamentary_group_slug text;
+UPDATE bill SET parliamentary_group= btrim(parliamentary_group);
+UPDATE bill SET parliamentary_group= NULL where parliamentary_group='';
 UPDATE bill SET parliamentary_group_slug =
 slugify(parliamentary_group::TEXT);
 "
@@ -187,6 +204,10 @@ FROM congressperson
 WHERE authorship.congressperson_slug = congressperson.congressperson_slug;
 "
 
+# Validating
+check_null_values "authorship" "congressperson_id"
+checkPreviousCommand "Ids has null values. Exiting."
+
 echo "----------------------------------------------"
 echo "#### Add id to tracking table "
 sqlcmd "
@@ -196,12 +217,21 @@ FROM committee
 WHERE tracking.committee_slug = committee.committee_slug;
 "
 
+# Validating
+check_null_values_reference "tracking" "tracking.committee_id" "tracking.committee"
+checkPreviousCommand "Ids has null values. Exiting."
+
 sqlcmd "
 ALTER TABLE tracking ADD COLUMN IF NOT EXISTS status_id uuid;
 UPDATE tracking SET status_id = bill_status.bill_status_id
 FROM bill_status 
 WHERE tracking.status_slug = bill_status.bill_status_slug;
 "
+
+# Validating
+# TODO: Update status id list
+#check_null_values "tracking" "status_id"
+#checkPreviousCommand "Ids has null values. Exiting."
 
 echo "----------------------------------------------"
 echo "#### Add id to bill table "
@@ -212,6 +242,10 @@ FROM committee
 WHERE bill.last_committee_slug = committee.committee_slug;
 "
 
+# Validating
+check_null_values_reference "bill" "last_committee_id" "last_committee"
+checkPreviousCommand "Ids has null values. Exiting."
+
 sqlcmd "
 ALTER TABLE bill ADD COLUMN IF NOT EXISTS legislature_id UUID;
 UPDATE bill SET legislature_id = legislature.legislature_id
@@ -219,12 +253,20 @@ FROM legislature
 WHERE bill.legislature_slug = legislature.legislature_slug;
 "
 
+# Validating
+check_null_values "bill" "legislature_id"
+checkPreviousCommand "Ids has null values. Exiting."
+
 sqlcmd "
 ALTER TABLE bill ADD COLUMN IF NOT EXISTS last_status_id UUID;
 UPDATE bill SET last_status_id = bill_status.bill_status_id
 FROM bill_status 
 WHERE bill.last_status_slug = bill_status.bill_status_slug;
 "
+
+# Validating
+#check_null_values "bill" "last_status_id"
+#checkPreviousCommand "Ids has null values. Exiting."
 
 sqlcmd "
 ALTER TABLE bill ADD COLUMN IF NOT EXISTS parliamentary_group_id UUID;
@@ -234,6 +276,11 @@ FROM parliamentary_group
 WHERE bill.parliamentary_group_slug =
 parliamentary_group.parliamentary_group_slug;
 "
+
+## Validating
+# TODO: Update parliamentary_group list
+#check_null_values_reference "bill" "parliamentary_group_id" "parliamentary_group"
+#checkPreviousCommand "Ids has null values. Exiting."
 
 #4. Update datatypes
 echo "----------------------------------------------"

@@ -10,6 +10,7 @@
 source utils/check_execution.sh
 source utils/sql.sh
 source utils/pgloader.sh
+source utils/check_db.sh
 
 INIT_DIR=${PWD}
 
@@ -62,14 +63,6 @@ working_tables=(\
   attendance_congressperson_metrics \
   attendance_parliamentary_group_metrics \
 )
-
-# Drop foreign keys to avoid locks
-#sqlcmd "
-#ALTER TABLE IF EXISTS seguimiento 
-#DROP CONSTRAINT IF EXISTS seguimiento_proyecto_ley_id_fkey;
-#ALTER TABLE IF EXISTS tracking 
-#DROP CONSTRAINT IF EXISTS seguimiento_proyecto_ley_id_fkey;
-#"
 
 for table_name in ${working_tables[@]}; do
   sqlcmd "DROP TABLE IF EXISTS \"$table_name\" CASCADE;"
@@ -339,6 +332,9 @@ FROM congressperson
 WHERE congressperson.congressperson_slug =
 attendance_congressperson.congressperson_slug;
 "
+# Validating
+check_null_values "attendance_congressperson" "congressperson_id"
+checkPreviousCommand "Ids has null values. Exiting."
 
 sqlcmd "
 ALTER TABLE voting_congressperson ADD COLUMN IF NOT EXISTS
@@ -348,6 +344,10 @@ FROM congressperson
 WHERE congressperson.congressperson_slug = 
 voting_congressperson.congressperson_slug;
 "
+
+# Validating
+check_null_values "voting_congressperson" "congressperson_id"
+checkPreviousCommand "Ids has null values. Exiting."
 
 echo "----------------------------------------------"
 echo "#### Add parliamentary_group_id to attendance and voting tables "
@@ -361,6 +361,10 @@ WHERE parliamentary_group.parliamentary_group_code =
 attendance_parliamentary_group.parliamentary_group;
 "
 
+# Validating
+check_null_values "attendance_parliamentary_group" "parliamentary_group_id"
+checkPreviousCommand "Ids has null values. Exiting."
+
 sqlcmd "
 ALTER TABLE voting_parliamentary_group ADD COLUMN IF NOT EXISTS
 parliamentary_group_id uuid;
@@ -370,6 +374,10 @@ FROM parliamentary_group
 WHERE parliamentary_group.parliamentary_group_code = 
 voting_parliamentary_group.parliamentary_group;
 "
+
+# Validating
+check_null_values "voting_parliamentary_group" "parliamentary_group_id"
+checkPreviousCommand "Ids has null values. Exiting."
 
 #4. Update datatypes
 # Change datatypes to plenary

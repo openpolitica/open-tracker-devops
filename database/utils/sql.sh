@@ -7,6 +7,11 @@ function sqlcmd() {
     checkPreviousCommand "Execution of SQL command failed."
 }
 
+function sqlcmdscript() {
+    psql -v ON_ERROR_STOP=1 -U ${PGUSER} -w  -h ${PGHOST} -t -c "$@"
+    checkPreviousCommand "Execution of SQL command failed."
+}
+
 function clean_db() {
     #https://stackoverflow.com/a/21247009/5107192
     sqlcmd "
@@ -56,4 +61,8 @@ function backup_all_db(){
 
 function restore_db() {
     psql -v ON_ERROR_STOP=1 -U ${PGUSER} -w  -h ${PGHOST} -d ${PGDATABASE} < "$@"
+}
+
+function build_sql_command() {
+  echo 'sqlcmdscript '"'"$@"'"''
 }
