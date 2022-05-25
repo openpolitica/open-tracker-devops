@@ -1,0 +1,12 @@
+version: '3.6'
+
+services:
+  open_tracker_twitter_bot:
+    image: openpolitica/open-tracker-twitter-bot:${GIT_BRANCH}
+    restart: always
+    environment:
+      - consumer_key=${CONSUMER_KEY}
+      - consumer_secret=${CONSUMER_SECRET}
+      - access_token_key=${ACCESS_TOKEN_KEY}
+      - access_token_secret=${ACCESS_TOKEN_SECRET}
+
