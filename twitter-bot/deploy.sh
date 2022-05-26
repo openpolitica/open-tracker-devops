@@ -46,6 +46,7 @@ if [[ -f ".env" ]]; then
 	sed -i '/CONSUMER_SECRET=/d' .env
 	sed -i '/ACCESS_TOKEN_KEY=/d' .env
 	sed -i '/ACCESS_TOKEN_SECRET=/d' .env
+  sed -i '/TUKU_BOT_WEBHOOK_EVERYTHING_OK=/d' .env
 	sed -i '/GIT_BRANCH=/d' .env
 fi
 
@@ -53,6 +54,7 @@ echo "CONSUMER_KEY=${CONSUMER_KEY}" >> .env
 echo "CONSUMER_SECRET=${CONSUMER_SECRET}" >> .env
 echo "ACCESS_TOKEN_KEY=${ACCESS_TOKEN_KEY}" >> .env
 echo "ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}" >> .env
+echo "TUKU_BOT_WEBHOOK_EVERYTHING_OK=${TUKU_BOT_WEBHOOK_EVERYTHING_OK}" >> .env
 echo "GIT_BRANCH=${GIT_BRANCH}" >> .env
 
 docker-compose up -d 

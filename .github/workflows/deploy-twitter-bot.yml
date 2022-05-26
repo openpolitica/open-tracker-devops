@@ -51,4 +51,5 @@ jobs:
           CONSUMER_SECRET=${{ secrets.CONSUMER_SECRET }} \
           ACCESS_TOKEN_KEY=${{ secrets.ACCESS_TOKEN_KEY }} \
           ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }} \
+          TUKU_BOT_WEBHOOK_EVERYTHING_OK=${{ secrets.TUKU_BOT_WEBHOOK_EVERYTHING_OK }} \
           ./deploy.sh
