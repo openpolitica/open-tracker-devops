@@ -42,7 +42,7 @@ docker run --rm --name attendance-voting \
 	-v ~/.m2:/var/maven/.m2 -u ${UID} -e MAVEN_CONFIG=/var/maven/.m2 \
 	-v "$(pwd)":/usr/src/mymaven \
 	-w /usr/src/mymaven maven:3.8.4-openjdk-17 \
-	/bin/bash -c "mvn clean compile exec:java -Duser.home=/var/maven -Dexec.mainClass='op.congreso.pleno.CargaPlenos'; mvn exec:java -Duser.home=/var/maven -Dexec.mainClass='op.congreso.pleno.CargaRegitroPlenos'"
+	/bin/bash -c "mvn clean compile exec:java -Duser.home=/var/maven -Dexec.mainClass='op.congreso.pleno.app.CargaPlenos'; mvn exec:java -Duser.home=/var/maven -Dexec.mainClass='op.congreso.pleno.app.CargaRegitroPlenos'"
 
 docker run --rm --name plenary-days \
 	-v "$(pwd)":/usr/src/myapp \
