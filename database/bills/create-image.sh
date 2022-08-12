@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source utils/check_execution.sh
+source utils/sql.sh
 
 #Init directory 
 INIT_DIR=${PWD}
@@ -54,6 +55,7 @@ BACKUP_FOLDER=${INIT_DIR}/backup
 mkdir -p $BACKUP_FOLDER
 BACKUP_NAME=backup_bills.sql
 
-pg_dump --data-only --table="(bill|tracking|grouped_initiative|authorship)" > $BACKUP_FOLDER/$BACKUP_NAME
+USE_DOCKER_CLIENT=1
+dump_command --data-only --table="(bill|tracking|grouped_initiative|authorship)" > $BACKUP_FOLDER/$BACKUP_NAME
 
 delete_container $TMP_CONTAINER_NAME

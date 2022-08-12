@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source utils/check_execution.sh
+source utils/sql.sh
 
 #Init directory 
 INIT_DIR=${PWD}
@@ -70,6 +71,7 @@ tables_to_backup=(\
   attendance_parliamentary_group_metrics \
   )
 
-pg_dump --data-only --table="($(join_by \| ${tables_to_backup[@]}))" > $BACKUP_FOLDER/$BACKUP_NAME
+USE_DOCKER_CLIENT=1
+dump_command --data-only --table="($(join_by \| ${tables_to_backup[@]}))" > $BACKUP_FOLDER/$BACKUP_NAME
 
 delete_container $TMP_CONTAINER_NAME
