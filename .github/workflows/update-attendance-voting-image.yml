@@ -1,11 +1,6 @@
 name: 'Update attendance-voting image (google-drive)'
 
 on:
-  workflow_run:
-    workflows: ['Update attendance-voting repository (sqlite db)']
-    types:
-      - completed
-
   workflow_dispatch:
     branches:
     - master
@@ -14,7 +9,6 @@ jobs:
   create:
     name: 'Create attendance-voting image'
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }} || ${{ github.event_name == 'workflow_dispatch' }}
 
     defaults:
       run:

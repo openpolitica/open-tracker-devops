@@ -2,7 +2,7 @@ name: 'Update bills data from image (server)'
 
 on:
   workflow_run:
-    workflows: ['Update bills image (google-drive)']
+    workflows: ['Update bills image - server (google-drive)']
     types:
       - completed
 

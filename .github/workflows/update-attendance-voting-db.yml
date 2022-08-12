@@ -2,7 +2,7 @@ name: 'Update attendance-voting data from image (server)'
 
 on:
   workflow_run:
-    workflows: ['Update attendance-voting image (google-drive)']
+    workflows: ['Update attendance-voting image - server (google-drive)']
     types:
       - completed
 
