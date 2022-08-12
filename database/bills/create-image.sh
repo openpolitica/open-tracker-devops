@@ -10,7 +10,8 @@ TMP_POSTGRES_DB=op
 TMP_POSTGRES_USER=op
 TMP_POSTGRES_PASSWORD=op
 TMP_POSTGRES_PORT=5432
-TMP_CONTAINER_NAME=tmp-database
+TMP_CONTAINER_NAME=tmp-database-bills
+PGLOADER_CONTAINER_NAME=pgloader-bills
 
 #Delete container if it exists
 #https://stackoverflow.com/a/44364288/5107192
@@ -21,7 +22,7 @@ function delete_container() {
 }
 
 delete_container $TMP_CONTAINER_NAME
-delete_container pgloader
+delete_container $PGLOADER_CONTAINER_NAME
 
 docker run --rm -d --name $TMP_CONTAINER_NAME \
   --env POSTGRES_DB=$TMP_POSTGRES_DB \
@@ -43,6 +44,7 @@ export PGHOST=$TMP_HOST
 export PGPORT=$TMP_POSTGRES_PORT
 export PGUSER=$TMP_POSTGRES_USER
 export PGPASSWORD=$TMP_POSTGRES_PASSWORD
+export PGLOADER_CONTAINER_NAME=$PGLOADER_CONTAINER_NAME
 
 ./reset-db-all.sh
 checkPreviousCommand "Reset script was unsucessfull. Exiting."
