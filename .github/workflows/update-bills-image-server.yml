@@ -39,7 +39,7 @@ jobs:
     - name: rsync over ssh
       run: rsync -av ./ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:congreso/open-tracker-devops/
 
-    - name: Execute commands
+    - name: Execute commands - create image
       uses: appleboy/ssh-action@master
       env:
         DEFAULT_ENV_TYPE: 'staging'
@@ -51,4 +51,16 @@ jobs:
         script: |
           cd congreso/open-tracker-devops/database
           GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }} GLOSSARY_SHEET_ID=${{ secrets.GLOSSARY_SHEET_ID }} GOOGLE_AUTH_ENCODED=${{ secrets.GOOGLE_AUTH_ENCODED }} ENV_TYPE=local ./bills/create-image.sh
+
+    - name: Execute commands - upload image
+      uses: appleboy/ssh-action@master
+      env:
+        DEFAULT_ENV_TYPE: 'staging'
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.SSH_PORT }}
+        script: |
+          cd congreso/open-tracker-devops/database
           GOOGLE_AUTH_ENCODED=${{ secrets.GOOGLE_AUTH_ENCODED }} ./bills/sync-remote.sh

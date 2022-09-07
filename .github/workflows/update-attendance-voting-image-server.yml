@@ -51,4 +51,16 @@ jobs:
         script: |
           cd congreso/open-tracker-devops/database
           GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }} GLOSSARY_SHEET_ID=${{ secrets.GLOSSARY_SHEET_ID }} GOOGLE_AUTH_ENCODED=${{ secrets.GOOGLE_AUTH_ENCODED }} ENV_TYPE=local ./attendance-voting/create-image.sh
+
+    - name: Execute commands
+      uses: appleboy/ssh-action@master
+      env:
+        DEFAULT_ENV_TYPE: 'staging'
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.SSH_PORT }}
+        script: |
+          cd congreso/open-tracker-devops/database
           GOOGLE_AUTH_ENCODED=${{ secrets.GOOGLE_AUTH_ENCODED }} ./attendance-voting/sync-remote.sh
