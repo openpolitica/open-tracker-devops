@@ -219,11 +219,13 @@ echo "#### Fix parliamentary_group id"
 wrong_codes=(\
   "AVP" \
   "APAIS" \
+  "CD" \
 )
 
 right_codes=(\
   "AP-PIS" \
   "AP-PIS" \
+  "CD-JPP"
 )
 
 j=0
