@@ -151,7 +151,7 @@ sqlcmd "
 DROP TABLE IF EXISTS \"attendance_in_session\";
 CREATE TABLE attendance_in_session AS
 SELECT DISTINCT parliamentary_period, annual_period, 
-legislature, date, time, plenary_session_title, quorum
+legislature, date, time, quorum
 FROM attendance_result;
 "
 
@@ -162,7 +162,7 @@ sqlcmd "
 DROP TABLE IF EXISTS \"voting_in_session\";
 CREATE TABLE voting_in_session AS
 SELECT DISTINCT parliamentary_period, annual_period, 
-legislature, date, time, plenary_session_title, quorum, subject, president, tags
+legislature, date, time, quorum, subject, president, tags
 FROM voting_result;
 "
 
