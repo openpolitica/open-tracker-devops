@@ -194,6 +194,27 @@ for slug in ${non_common_slugs[@]}; do
   ((j++))
 done
 
+echo "----------------------------------------------"
+echo "#### Fix legislature_slug "
+# Fix wrong legislature_slugs (came wrong from the congress webpage)
+# They considered first 2023 legislature when still is the second 2022
+# legislature
+wrong_legislature_bills=(\
+  "04335/2023-CR" \
+  "04336/2023-CR" \
+  "04337/2023-CR" \
+  "04338/2023-CR" \
+  )
+
+right_legislature_slug="primera-legislatura-ordinaria-2022"
+for period_number_id in ${wrong_legislature_bills[@]}; do
+  sqlcmd "
+   UPDATE bill SET legislature_slug = '${right_legislature_slug}' WHERE
+   period_number = '${period_number_id}';"
+  ((j++))
+done
+
+
 # 3. Add corresponding IDs
 echo "----------------------------------------------"
 echo "#### Add id to authorship table "
