@@ -55,6 +55,8 @@ ALTER TABLE IF EXISTS seguimiento
 DROP CONSTRAINT IF EXISTS seguimiento_proyecto_ley_id_fkey;
 ALTER TABLE IF EXISTS tracking 
 DROP CONSTRAINT IF EXISTS seguimiento_proyecto_ley_id_fkey;
+ALTER TABLE IF EXISTS iniciativa_agrupada 
+DROP CONSTRAINT IF EXISTS iniciativa_agrupada_proyecto_ley_id_fkey;
 "
 
 for table_name in ${working_tables[@]}; do
@@ -97,6 +99,16 @@ ALTER TABLE tmp_tracking DROP committee_deployed;
 INSERT INTO tmp_tracking SELECT * FROM tracking WHERE committee is null;
 DROP TABLE tracking;
 ALTER TABLE tmp_tracking RENAME TO tracking;
+"
+
+# 0. Clean grouped_initiative
+echo "----------------------------------------------"
+echo "#### Clean grouped_initiative "
+sqlcmd "
+DELETE from grouped_initiative 
+WHERE grouped_initiative.bill_id NOT IN ( SELECT b.id FROM bill b);
+DELETE from grouped_initiative 
+WHERE grouped_initiative.grouped_initiative NOT IN ( SELECT b.id FROM bill b);
 "
 
 # 1. Add slugs to tables
