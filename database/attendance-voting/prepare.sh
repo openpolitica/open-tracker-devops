@@ -47,6 +47,6 @@ docker run --rm --name attendance-voting \
 docker run --rm --name plenary-days \
 	-v "$(pwd)":/usr/src/myapp \
 	-w /usr/src/myapp python:3.9 \
-	/bin/bash -c "pip install csvs-to-sqlite; csvs-to-sqlite plenos.csv plenos.db; chown ${UID}:0 plenos.db"
+	/bin/bash -c "pip install git+https://github.com/LuighiV/csvs-to-sqlite.git@main; csvs-to-sqlite plenos.csv plenos.db; chown ${UID}:0 plenos.db"
 
 
