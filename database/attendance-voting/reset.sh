@@ -193,6 +193,7 @@ wrong_slugs=(\
   "campos-hernando-guerra-garcia" \
   "ernesto-bustamante-donayre" \
   "vivian-olivos-martinez" \
+  "nelcy-heidinger-ballesteros" \
 )
 
 right_slugs=(\
@@ -200,6 +201,7 @@ right_slugs=(\
   "hernando-guerra-garcia-campos" \
   "carlos-ernesto-bustamante-donayre" \
   "leslie-vivian-olivos-martinez" \
+  "nelcy-lidia-heidinger-ballesteros" \
 )
 
 j=0
