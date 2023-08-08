@@ -50,6 +50,7 @@ jobs:
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SSH_PORT }}
+        command_timeout: 30m
         script: |
           cd congreso/open-tracker-devops/database
           ENV_TYPE=${{ github.event.inputs.env_type || env.DEFAULT_ENV_TYPE }} ./bills/sync-repository.sh
