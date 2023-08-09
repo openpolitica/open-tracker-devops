@@ -42,11 +42,11 @@ docker run --rm --name attendance-voting \
 	-v ~/.m2:/var/maven/.m2 -u ${UID} -e MAVEN_CONFIG=/var/maven/.m2 \
 	-v "$(pwd)":/usr/src/mymaven \
 	-w /usr/src/mymaven maven:3.8.4-openjdk-17 \
-	/bin/bash -c "mvn exec:java -Duser.home=/var/maven -Dexec.mainClass='op.congreso.pleno.app.LoadRegitroPlenoDocuments'; mvn clean compile exec:java -Duser.home=/var/maven -Dexec.mainClass='op.congreso.pleno.app.LoadDetallePlenosAndSave';"
+	/bin/bash -c "mvn clean compile -Duser.home=/var/maven; mvn exec:java -Duser.home=/var/maven;"
 
 docker run --rm --name plenary-days \
 	-v "$(pwd)":/usr/src/myapp \
 	-w /usr/src/myapp python:3.9 \
-	/bin/bash -c "pip install git+https://github.com/LuighiV/csvs-to-sqlite.git@main; csvs-to-sqlite plenos.csv plenos.db; chown ${UID}:0 plenos.db"
+	/bin/bash -c "pip install git+https://github.com/LuighiV/csvs-to-sqlite.git@main; csvs-to-sqlite data/2021-2026/plenos.csv plenos.db; chown ${UID}:0 plenos.db"
 
 
