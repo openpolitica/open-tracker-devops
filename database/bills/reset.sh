@@ -226,6 +226,18 @@ for period_number_id in ${wrong_legislature_bills[@]}; do
   ((j++))
 done
 
+wrong_legislature_bills=(\
+  "05588/2024-CR" \
+  )
+
+right_legislature_slug="segunda-legislatura-ordinaria-2022"
+for period_number_id in ${wrong_legislature_bills[@]}; do
+  sqlcmd "
+   UPDATE bill SET legislature_slug = '${right_legislature_slug}' WHERE
+   period_number = '${period_number_id}';"
+  ((j++))
+done
+
 
 # 3. Add corresponding IDs
 echo "----------------------------------------------"
